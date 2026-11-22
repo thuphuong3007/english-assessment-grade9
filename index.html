@@ -1,0 +1,3045 @@
+﻿<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AfL & CATs English 9 - Hệ thống Đánh giá Chẩn đoán Trực tuyến</title>
+    <!-- Thư viện Supabase JS SDK chính thức -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --primary: #1e40af;
+            --primary-light: #2563eb;
+            --primary-bg: #eff6ff;
+            --bg: #f1f5f9;
+            --card: #ffffff;
+            --text: #0f172a;
+            --muted: #475569;
+            --border: #cbd5e1;
+            --green: #15803d;
+            --green-bg: #dcfce7;
+            --blue: #0369a1;
+            --blue-bg: #e0f2fe;
+            --red: #b91c1c;
+            --red-bg: #fee2e2;
+            --amber: #b45309;
+            --amber-bg: #fef3c7;
+            --purple: #6d28d9;
+            --purple-bg: #ede9fe;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.55;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        header {
+            background: var(--card);
+            border-bottom: 1px solid var(--border);
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            position: sticky;
+            top: 0;
+            z-index: 30;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .brand {
+            font-weight: 700;
+            font-size: 1.06rem;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .sync-pill {
+            font-size: 0.76rem;
+            padding: 4px 11px;
+            border-radius: 99px;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            border: 1px solid transparent;
+        }
+
+        .sync-online {
+            background: var(--green-bg);
+            color: var(--green);
+            border-color: #86efac;
+        }
+
+        .sync-local {
+            background: var(--amber-bg);
+            color: var(--amber);
+            border-color: #fcd34d;
+        }
+
+        .nav-tabs {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .tab-btn {
+            padding: 8px 13px;
+            border: 1px solid var(--border);
+            background: #fff;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: var(--muted);
+            transition: 0.15s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+            .tab-btn:hover {
+                background: #f8fafc;
+                color: var(--text);
+            }
+
+            .tab-btn.active {
+                background: var(--primary);
+                color: #fff;
+                border-color: var(--primary);
+            }
+
+        .notif-pill {
+            background: var(--red);
+            color: #fff;
+            font-size: 0.72rem;
+            font-weight: 700;
+            padding: 1px 7px;
+            border-radius: 99px;
+        }
+
+        .user-chip {
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            padding: 6px 12px;
+            border-radius: 99px;
+            font-size: 0.83rem;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .container {
+            max-width: 1120px;
+            width: 100%;
+            margin: 24px auto;
+            padding: 0 16px;
+            flex: 1;
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 22px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+            margin-bottom: 20px;
+        }
+
+        h2, h3, h4 {
+            margin-top: 0;
+            color: var(--text);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 99px;
+            font-size: 0.76rem;
+            font-weight: 700;
+        }
+
+        .badge-lo {
+            background: var(--blue-bg);
+            color: var(--blue);
+        }
+
+        .badge-bloom {
+            background: var(--purple-bg);
+            color: var(--purple);
+        }
+
+        .badge-remediation {
+            background: var(--amber-bg);
+            color: var(--amber);
+        }
+
+        .badge-danger {
+            background: var(--red-bg);
+            color: var(--red);
+        }
+
+        .badge-ok {
+            background: var(--green-bg);
+            color: var(--green);
+        }
+
+        /* Login Portal */
+        .login-wrapper {
+            max-width: 940px;
+            margin: 8px auto;
+        }
+
+        .login-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+            gap: 20px;
+            margin-top: 16px;
+        }
+
+        .login-card {
+            background: #fff;
+            border: 1.5px solid var(--border);
+            border-radius: 14px;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: 0.15s;
+        }
+
+            .login-card:hover {
+                border-color: var(--primary-light);
+                box-shadow: 0 6px 18px rgba(30, 64, 175, 0.08);
+            }
+
+        .auth-switch {
+            display: flex;
+            background: #f1f5f9;
+            padding: 4px;
+            border-radius: 8px;
+            margin: 12px 0 16px;
+        }
+
+        .auth-switch-btn {
+            flex: 1;
+            padding: 7px;
+            border: none;
+            background: transparent;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.86rem;
+            cursor: pointer;
+            color: var(--muted);
+            transition: 0.15s;
+        }
+
+            .auth-switch-btn.active {
+                background: #fff;
+                color: var(--primary);
+                box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            }
+
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 14px;
+            margin: 14px 0;
+        }
+
+        label {
+            display: block;
+            font-size: 0.84rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: #334155;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.93rem;
+            background: #fff;
+        }
+
+            input:focus, select:focus, textarea:focus {
+                outline: none;
+                border-color: var(--primary-light);
+                box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
+            }
+
+        .btn {
+            padding: 10px 18px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: 0.15s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+            .btn:disabled {
+                opacity: 0.45;
+                cursor: not-allowed;
+            }
+
+        .btn-primary {
+            background: var(--primary-light);
+            color: #fff;
+        }
+
+            .btn-primary:hover:not(:disabled) {
+                background: var(--primary);
+            }
+
+        .btn-success {
+            background: var(--green);
+            color: #fff;
+        }
+
+            .btn-success:hover:not(:disabled) {
+                background: #166534;
+            }
+
+        .btn-outline {
+            background: #fff;
+            border: 1px solid var(--border);
+            color: var(--text);
+        }
+
+            .btn-outline:hover:not(:disabled) {
+                background: #f8fafc;
+            }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 0.82rem;
+        }
+
+        .option-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin: 16px 0;
+        }
+
+        .option-btn {
+            text-align: left;
+            padding: 13px 16px;
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            background: #fff;
+            cursor: pointer;
+            font-size: 0.96rem;
+            transition: 0.15s;
+        }
+
+            .option-btn:hover:not(:disabled) {
+                border-color: var(--primary-light);
+                background: var(--primary-bg);
+            }
+
+            .option-btn.selected-pending {
+                border-color: var(--primary-light);
+                background: var(--primary-bg);
+                font-weight: 600;
+            }
+
+            .option-btn.selected-wrong {
+                border-color: var(--red);
+                background: var(--red-bg);
+                color: var(--red);
+                font-weight: 600;
+            }
+
+            .option-btn.selected-correct {
+                border-color: var(--green);
+                background: var(--green-bg);
+                color: var(--green);
+                font-weight: 600;
+            }
+
+        .confidence-box {
+            background: #f8fafc;
+            border: 1px dashed #94a3b8;
+            border-radius: 10px;
+            padding: 14px;
+            margin-top: 14px;
+        }
+
+        .conf-options {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 8px;
+        }
+
+        .conf-btn {
+            flex: 1;
+            min-width: 140px;
+            padding: 9px 12px;
+            border: 1.5px solid var(--border);
+            border-radius: 8px;
+            background: #fff;
+            cursor: pointer;
+            font-size: 0.88rem;
+            font-weight: 600;
+            text-align: center;
+            transition: 0.15s;
+        }
+
+            .conf-btn.active-certain {
+                border-color: var(--green);
+                background: var(--green-bg);
+                color: #14532d;
+            }
+
+            .conf-btn.active-unsure {
+                border-color: var(--amber);
+                background: var(--amber-bg);
+                color: #78350f;
+            }
+
+            .conf-btn.active-guess {
+                border-color: var(--purple);
+                background: var(--purple-bg);
+                color: #4c1d95;
+            }
+
+        .feedback-box {
+            padding: 16px;
+            border-radius: 10px;
+            margin-top: 16px;
+            border-left: 4px solid;
+        }
+
+        .fb-scaffolding {
+            background: var(--amber-bg);
+            border-color: var(--amber);
+            color: #78350f;
+        }
+
+        .fb-misconception {
+            background: var(--red-bg);
+            border-color: var(--red);
+            color: #7f1d1d;
+        }
+
+        .fb-success {
+            background: var(--green-bg);
+            border-color: var(--green);
+            color: #14532d;
+        }
+
+        .fb-lucky {
+            background: var(--purple-bg);
+            border-color: var(--purple);
+            color: #4c1d95;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 99px;
+            overflow: hidden;
+            margin-bottom: 14px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--primary-light);
+            transition: width 0.3s;
+        }
+
+        /* Teacher Review Cards */
+        .submission-card {
+            border: 1.5px solid var(--border);
+            border-radius: 12px;
+            padding: 18px;
+            margin-bottom: 16px;
+            background: #fff;
+        }
+
+            .submission-card.pending-border {
+                border-left: 5px solid var(--amber);
+            }
+
+            .submission-card.reviewed-border {
+                border-left: 5px solid var(--green);
+            }
+
+        .teacher-reply-box {
+            background: #f8fafc;
+            border: 1px solid #cbd5e1;
+            border-radius: 10px;
+            padding: 14px;
+            margin-top: 12px;
+        }
+
+        .quick-chips {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin: 8px 0;
+        }
+
+        .chip-btn {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 99px;
+            padding: 4px 10px;
+            font-size: 0.78rem;
+            cursor: pointer;
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+            .chip-btn:hover {
+                background: var(--primary-bg);
+                border-color: var(--primary-light);
+            }
+
+        /* Student Received Feedback Box */
+        .teacher-msg-card {
+            background: var(--green-bg);
+            border: 1.5px solid #86efac;
+            border-radius: 10px;
+            padding: 14px 16px;
+            margin-top: 12px;
+            color: #14532d;
+        }
+
+        .pending-msg-card {
+            background: var(--amber-bg);
+            border: 1px dashed #fcd34d;
+            border-radius: 10px;
+            padding: 12px 16px;
+            margin-top: 12px;
+            color: #78350f;
+            font-size: 0.9rem;
+        }
+
+        /* Cloud Config Box */
+        .cloud-banner {
+            background: #eff6ff;
+            border: 1.5px solid #93c5fd;
+            border-radius: 12px;
+            padding: 18px 20px;
+            margin-bottom: 18px;
+        }
+
+        .sync-warning-strip {
+            background: #fffbeb;
+            border: 1px solid #fcd34d;
+            color: #92400e;
+            padding: 10px 16px;
+            border-radius: 10px;
+            font-size: 0.86rem;
+            margin-bottom: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        /* KPI Cards & Grids */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+            gap: 14px;
+            margin-bottom: 20px;
+        }
+
+        .kpi-card {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 16px;
+        }
+
+        .kpi-title {
+            font-size: 0.8rem;
+            color: var(--muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .kpi-value {
+            font-size: 1.65rem;
+            font-weight: 800;
+            color: var(--primary);
+            margin: 4px 0;
+        }
+
+        .kpi-sub {
+            font-size: 0.8rem;
+            color: var(--muted);
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+            gap: 16px;
+        }
+
+        .grid-4 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 14px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            padding: 16px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: #fff;
+        }
+
+        .bar-row {
+            margin-bottom: 14px;
+        }
+
+        .bar-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.86rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+            gap: 8px;
+        }
+
+        .bar-track {
+            height: 14px;
+            background: #e2e8f0;
+            border-radius: 6px;
+            overflow: hidden;
+            display: flex;
+        }
+
+        .seg-mastered {
+            background: var(--green);
+        }
+
+        .seg-lucky {
+            background: var(--purple);
+        }
+
+        .seg-remediated {
+            background: var(--blue);
+        }
+
+        .seg-needhelp {
+            background: var(--red);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 0.86rem;
+        }
+
+        th, td {
+            padding: 10px 10px;
+            border: 1px solid var(--border);
+            text-align: left;
+            vertical-align: top;
+        }
+
+        th {
+            background: #f8fafc;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .tos-cell-active {
+            background: #eff6ff;
+            font-weight: 600;
+        }
+
+        .tos-cell-empty {
+            background: #f8fafc;
+            color: #94a3b8;
+            text-align: center;
+        }
+
+        .self-scale-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin: 12px 0;
+        }
+
+        .scale-option {
+            border: 1.5px solid var(--border);
+            border-radius: 8px;
+            padding: 10px 12px;
+            cursor: pointer;
+            background: #fff;
+            font-size: 0.88rem;
+        }
+
+            .scale-option.selected {
+                border-color: var(--primary-light);
+                background: var(--primary-bg);
+                font-weight: 600;
+            }
+
+        footer {
+            background: var(--card);
+            border-top: 1px solid var(--border);
+            padding: 16px 24px;
+            text-align: center;
+            font-size: 0.84rem;
+            color: var(--muted);
+            margin-top: 32px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="brand">
+            AfL &amp; CATs English 9
+            <span id="cloudStatusPill" class="sync-pill sync-local" onclick="toggleCloudModal()" title="Bấm để cấu hình kết nối Supabase">
+                ● Chế độ Cục bộ (Bấm để kết nối Supabase)
+            </span>
+        </div>
+
+        <!-- Thanh điều hướng khi Học sinh đăng nhập -->
+        <div class="nav-tabs hidden" id="studentNav">
+            <button class="tab-btn active" id="btnStuQuizTab" onclick="switchStudentTab('quiz')">Làm bài Chẩn đoán</button>
+            <button class="tab-btn" id="btnStuInboxTab" onclick="switchStudentTab('inbox')">
+                Lịch sử &amp; Nhận xét từ Giáo viên <span class="notif-pill hidden" id="stuUnreadBadge">0</span>
+            </button>
+            <button class="tab-btn" onclick="changeStudentPassword()">Đổi mật khẩu</button>
+            <span class="user-chip" id="stuUserBadge">Học sinh</span>
+            <button class="tab-btn" onclick="logout()" style="color:var(--red);">Đăng xuất</button>
+        </div>
+
+        <!-- Thanh điều hướng khi Giáo viên đăng nhập -->
+        <div class="nav-tabs hidden" id="teacherNav">
+            <button class="tab-btn active" id="btnTchReviewTab" onclick="switchTeacherTab('review')">
+                1. Nhận kết quả &amp; Gửi nhận xét <span class="notif-pill hidden" id="tchPendingBadge">0</span>
+            </button>
+            <button class="tab-btn" id="btnTchDashTab" onclick="switchTeacherTab('dashboard')">2. Phân tích CTT &amp; Lớp</button>
+            <button class="tab-btn" id="btnTchAccountsTab" onclick="switchTeacherTab('accounts')">3. Tài khoản HS</button>
+            <button class="tab-btn" id="btnTchSpecTab" onclick="switchTeacherTab('spec')">4. Bảng đặc tả</button>
+            <button class="tab-btn" onclick="manualSyncNow()" title="Đồng bộ dữ liệu mới nhất từ Supabase">↻ Đồng bộ ngay</button>
+            <button class="tab-btn" onclick="logout()" style="color:var(--red);">Đăng xuất</button>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- ================= HỘP CẤU HÌNH SUPABASE ================= -->
+        <div id="cloudConfigPanel" class="cloud-banner hidden">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px; flex-wrap:wrap;">
+                <div style="flex:1; min-width:280px;">
+                    <h3 style="margin:0 0 6px; color:var(--primary);">Cấu hình Máy chủ Dữ liệu Supabase (Đồng bộ đa thiết bị toàn lớp)</h3>
+                    <p style="margin:0 0 10px; font-size:0.86rem; color:#1e3a8a;">
+                        Dán <strong>Project URL</strong> và <strong>anon public key</strong> từ Supabase vào bên dưới (hoặc dán trực tiếp vào 2 biến <code>DEFAULT_SUPABASE_URL</code> và <code>DEFAULT_SUPABASE_ANON_KEY</code> trong file <code>index.html</code> trước khi đẩy lên GitHub/Vercel để toàn lớp tự động kết nối):
+                    </p>
+                    <div class="form-grid" style="margin:8px 0;">
+                        <div>
+                            <label for="sbUrlInput">Supabase Project URL:</label>
+                            <input type="url" id="sbUrlInput" placeholder="https://xxxxxxxxxxxx.supabase.co" />
+                        </div>
+                        <div>
+                            <label for="sbKeyInput">Supabase anon public Key:</label>
+                            <input type="text" id="sbKeyInput" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." />
+                        </div>
+                    </div>
+                    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
+                        <button class="btn btn-primary" onclick="saveSupabaseConfig()">Lưu &amp; Kết nối Supabase ngay</button>
+                        <button class="btn btn-outline" onclick="disconnectSupabase()">Ngắt kết nối (Dùng cục bộ)</button>
+                    </div>
+                </div>
+                <button class="btn btn-outline btn-sm" onclick="toggleCloudModal()">✕ Đóng</button>
+            </div>
+        </div>
+
+        <!-- ================= MÀN HÌNH ĐĂNG NHẬP PHÂN QUYỀN ================= -->
+        <div id="loginPortal" class="login-wrapper">
+            <div id="localWarningStrip" class="sync-warning-strip">
+                <span>
+                    <strong>Chưa kết nối Supabase:</strong> Hệ thống đang chạy ở <em>Chế độ Cục bộ</em> trên thiết bị này. Hãy kết nối Supabase để đồng bộ dữ liệu trên điện thoại, laptop và máy tính giáo viên.
+                </span>
+                <button class="btn btn-primary btn-sm" onclick="toggleCloudModal()">Cài đặt Supabase</button>
+            </div>
+
+            <div class="card" style="text-align:center; margin-bottom:16px;">
+                <span class="badge badge-lo">Chương trình GDPT 2018 • Tiếng Anh 9 Global Success</span>
+                <h2 style="margin:10px 0 6px;">Cổng Đăng nhập Hệ thống Đánh giá Quá trình (AfL &amp; CATs)</h2>
+                <p style="color:var(--muted); margin:0;">
+                    Học sinh sử dụng <strong>Tên đăng nhập &amp; Mật khẩu</strong> để lưu trữ toàn bộ lịch sử làm bài và nhận xét của giáo viên trên mọi thiết bị.
+                </p>
+            </div>
+
+            <div class="login-grid">
+                <!-- Cột 1: Đăng nhập / Đăng ký Học sinh -->
+                <div class="login-card">
+                    <div>
+                        <span class="badge badge-ok">Vai trò 1 • Học sinh</span>
+                        <h3 style="margin:10px 0 2px;">Tài khoản Học sinh</h3>
+                        <p style="font-size:0.84rem; color:var(--muted); margin:0;">
+                            Đăng nhập bằng mật khẩu để giữ nguyên lịch sử bài làm và nhận xét của thầy/cô.
+                        </p>
+
+                        <div class="auth-switch">
+                            <button type="button" class="auth-switch-btn active" id="tabStuLoginMode" onclick="switchStuAuthMode('login')">Đăng nhập</button>
+                            <button type="button" class="auth-switch-btn" id="tabStuRegMode" onclick="switchStuAuthMode('register')">Đăng ký tài khoản mới</button>
+                        </div>
+
+                        <!-- Form Đăng nhập HS -->
+                        <div id="stuLoginForm">
+                            <div class="form-group">
+                                <label for="loginStuUser">Tên đăng nhập <span style="color:var(--red);">*</span></label>
+                                <input type="text" id="loginStuUser" placeholder="VD: minhanh9a1" onkeydown="if(event.key==='Enter') loginAsStudent()" />
+                            </div>
+                            <div class="form-group">
+                                <label for="loginStuPass">Mật khẩu <span style="color:var(--red);">*</span></label>
+                                <input type="password" id="loginStuPass" placeholder="Nhập mật khẩu của em" onkeydown="if(event.key==='Enter') loginAsStudent()" />
+                            </div>
+                            <button class="btn btn-primary" style="width:100%; margin-top:6px;" onclick="loginAsStudent()">Đăng nhập Học sinh &rarr;</button>
+                            <p style="font-size:0.8rem; color:var(--muted); margin:10px 0 0; text-align:center;">
+                                Chưa có tài khoản? Bấm vào thẻ <strong>"Đăng ký tài khoản mới"</strong> ở trên để tạo.
+                            </p>
+                        </div>
+
+                        <!-- Form Đăng ký HS -->
+                        <div id="stuRegisterForm" class="hidden">
+                            <div class="form-group">
+                                <label for="regStuFullName">Họ và tên đầy đủ <span style="color:var(--red);">*</span></label>
+                                <input type="text" id="regStuFullName" placeholder="VD: Nguyễn Minh Anh" />
+                            </div>
+                            <div class="form-group">
+                                <label for="regStuClass">Lớp học <span style="color:var(--red);">*</span></label>
+                                <input type="text" id="regStuClass" value="9A1" placeholder="VD: 9A1" />
+                            </div>
+                            <div class="form-group">
+                                <label for="regStuUser">Tên đăng nhập (viết liền không dấu) <span style="color:var(--red);">*</span></label>
+                                <input type="text" id="regStuUser" placeholder="VD: minhanh9a1" />
+                            </div>
+                            <div class="form-group">
+                                <label for="regStuPass">Tạo mật khẩu <span style="color:var(--red);">*</span></label>
+                                <input type="password" id="regStuPass" placeholder="Nhập mật khẩu dễ nhớ (từ 4 ký tự)" onkeydown="if(event.key==='Enter') registerStudent()" />
+                            </div>
+                            <button class="btn btn-success" style="width:100%; margin-top:6px;" onclick="registerStudent()">Tạo tài khoản &amp; Vào học &rarr;</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cột 2: Đăng nhập Giáo viên -->
+                <div class="login-card">
+                    <div>
+                        <span class="badge badge-bloom">Vai trò 2 • Giáo viên</span>
+                        <h3 style="margin:10px 0 6px;">Đăng nhập Giáo viên</h3>
+                        <p style="font-size:0.85rem; color:var(--muted); margin-bottom:16px;">
+                            Theo dõi kết quả học sinh từ điện thoại và máy tính toàn lớp, gửi nhận xét phản hồi, quản lý tài khoản và phân tích CTT.
+                        </p>
+                        <div class="form-group">
+                            <label for="loginTchUser">Tên đăng nhập Giáo viên</label>
+                            <input type="text" id="loginTchUser" value="giaovien" placeholder="giaovien" onkeydown="if(event.key==='Enter') loginAsTeacher()" />
+                        </div>
+                        <div class="form-group">
+                            <label for="loginTchPass">Mật khẩu</label>
+                            <input type="password" id="loginTchPass" value="123456" placeholder="••••••" onkeydown="if(event.key==='Enter') loginAsTeacher()" />
+                        </div>
+                        <p style="font-size:0.78rem; color:var(--muted); margin:0 0 12px;">
+                            Tài khoản mặc định: <strong>giaovien</strong> / Mật khẩu: <strong>123456</strong>
+                        </p>
+                    </div>
+                    <div>
+                        <button class="btn btn-success" style="width:100%; margin-bottom:8px;" onclick="loginAsTeacher()">Vào giao diện Giáo viên &rarr;</button>
+                        <button class="btn btn-outline btn-sm" style="width:100%;" onclick="toggleCloudModal()">⚙ Cài đặt kết nối Supabase</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= GIAO DIỆN HỌC SINH ================= -->
+        <div id="studentPortal" class="hidden">
+            <!-- Thẻ Tóm tắt Hồ sơ Học tập Cá nhân -->
+            <div class="card" id="studentProfileCard" style="background:linear-gradient(to right, #eff6ff, #ffffff); border-color:#bfdbfe;">
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+                    <div>
+                        <span class="badge badge-lo">Hồ sơ Học tập Cá nhân Đồng bộ Đa thiết bị</span>
+                        <h3 id="stuProfileTitle" style="margin:6px 0 4px; color:var(--primary);">Xin chào!</h3>
+                        <p id="stuProfileStats" style="margin:0; font-size:0.88rem; color:#334155;">Đang tải lịch sử học tập...</p>
+                    </div>
+                    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                        <button class="btn btn-outline btn-sm" onclick="switchStudentTab('inbox')">Xem toàn bộ Lịch sử &amp; Nhận xét GV</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab A: Làm bài kiểm tra chẩn đoán -->
+            <div id="stuQuizSection">
+                <div class="card" id="startScreen">
+                    <span class="badge badge-lo">Assessment for Learning (AfL) &amp; Assessment as Learning (AaL)</span>
+                    <h2 style="margin-top:8px;">Chọn Chuyên đề Đánh giá Chẩn đoán</h2>
+                    <p style="color:var(--muted); margin-bottom:16px;">
+                        Sau khi hoàn thành, kết quả sẽ được lưu lên máy chủ và gửi tự động tới <strong>Giáo viên bộ môn</strong> để nhận xét.
+                    </p>
+                    <div class="form-grid">
+                        <div>
+                            <label for="unitSelect">Chuyên đề ngữ pháp (Tiếng Anh 9 Global Success)</label>
+                            <select id="unitSelect">
+                                <option value="unit1">Unit 1: Question words before to-infinitives (4 Mục tiêu)</option>
+                                <option value="unit2">Unit 2: Double comparatives - So sánh kép (3 Mục tiêu)</option>
+                                <option value="unit3">Unit 3: Modal verbs in first conditionals (3 Mục tiêu)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div style="margin-top:14px;">
+                        <button class="btn btn-primary" onclick="startAssessment()">Bắt đầu làm bài &rarr;</button>
+                    </div>
+                </div>
+
+                <!-- Màn hình làm bài 2 tầng -->
+                <div class="card hidden" id="quizScreen">
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:10px;">
+                        <div>
+                            <span id="loBadge" class="badge badge-lo">MT1.1</span>
+                            <span id="bloomBadge" class="badge badge-bloom">Bậc nhận thức: Hiểu</span>
+                        </div>
+                        <span id="tierBadge" class="badge" style="background:#f1f5f9; color:#334155;">Vòng 1: Chẩn đoán 2 tầng</span>
+                    </div>
+                    <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+                    <p id="loDesc" style="font-size:0.88rem; color:var(--muted); margin-bottom:6px; font-weight:600;"></p>
+                    <h3 id="questionText" style="font-size:1.12rem;"></h3>
+
+                    <div class="option-list" id="optionsContainer"></div>
+
+                    <!-- Thang đo mức độ tự tin (CBA) -->
+                    <div class="confidence-box" id="confidenceBox">
+                        <div style="font-size:0.88rem; font-weight:600; color:#1e293b;">
+                            Xác nhận siêu nhận thức: Em chắc chắn với đáp án trên ở mức nào? <span style="color:var(--red);">*</span>
+                        </div>
+                        <div class="conf-options">
+                            <button type="button" class="conf-btn" id="conf-certain" onclick="selectConfidence('certain')">Chắc chắn 100%</button>
+                            <button type="button" class="conf-btn" id="conf-unsure" onclick="selectConfidence('unsure')">Phân vân (50%)</button>
+                            <button type="button" class="conf-btn" id="conf-guess" onclick="selectConfidence('guess')">Đoán mò</button>
+                        </div>
+                    </div>
+
+                    <div id="feedbackContainer" class="hidden"></div>
+
+                    <div style="margin-top:18px; display:flex; justify-content:flex-end; gap:10px;">
+                        <button class="btn btn-primary" id="submitAnswerBtn" onclick="evaluateAnswer()" disabled>Xác nhận câu trả lời</button>
+                        <button class="btn btn-primary hidden" id="nextBtn" onclick="handleNextStep()">Tiếp tục &rarr;</button>
+                    </div>
+                </div>
+
+                <!-- Màn hình Tự đánh giá (Exit Ticket) -->
+                <div class="card hidden" id="exitTicketScreen">
+                    <span class="badge badge-bloom">Tự đánh giá &amp; Gửi câu hỏi cho Giáo viên</span>
+                    <h2 style="margin-top:8px;">Phiếu Tự đánh giá Mức độ Làm chủ</h2>
+                    <p style="color:var(--muted);">
+                        Em hãy tự đánh giá mức độ hiểu bài của mình trước khi gửi kết quả cho giáo viên:
+                    </p>
+                    <div class="self-scale-grid" id="selfScaleContainer">
+                        <div class="scale-option" onclick="selectSelfRating(1, this)"><strong>Mức 1:</strong> Chưa thực hiện được, cần giảng lại từ đầu</div>
+                        <div class="scale-option" onclick="selectSelfRating(2, this)"><strong>Mức 2:</strong> Thực hiện được khi có gợi ý của giáo viên</div>
+                        <div class="scale-option" onclick="selectSelfRating(3, this)"><strong>Mức 3:</strong> Tự làm được trong các tình huống quen thuộc</div>
+                        <div class="scale-option" onclick="selectSelfRating(4, this)"><strong>Mức 4:</strong> Tự tin vận dụng trong mọi tình huống giao tiếp</div>
+                    </div>
+                    <div style="margin-top:14px;">
+                        <label for="qualitativeNote">Lời nhắn hoặc điểm ngữ pháp em muốn Giáo viên giải thích thêm (Không bắt buộc):</label>
+                        <textarea id="qualitativeNote" rows="2" placeholder="VD: Em vẫn hay nhầm giữa 'what to do' và 'how to do', mong thầy/cô giải thích thêm giúp em..."></textarea>
+                    </div>
+                    <div style="margin-top:16px; text-align:right;">
+                        <button class="btn btn-success" id="finishAllBtn" onclick="finalizeAndSave()" disabled>Hoàn tất &amp; Lưu bài gửi Giáo viên &rarr;</button>
+                    </div>
+                </div>
+
+                <!-- Màn hình xác nhận sau khi nộp -->
+                <div class="card hidden" id="resultScreen">
+                    <span class="badge badge-ok">Đã lưu lên máy chủ &amp; gửi tới Giáo viên thành công</span>
+                    <h2 id="resultHeader" style="margin-top:8px;"></h2>
+                    <p id="resultGrowthText" style="font-weight:600; color:var(--primary);"></p>
+                    <div id="studentSummaryList"></div>
+                    <div class="pending-msg-card">
+                        <strong>Trạng thái lưu trữ:</strong> Kết quả này đã được đồng bộ vào tài khoản <strong><span id="savedAccountSpan"></span></strong>. Dù em đăng nhập trên điện thoại hay máy tính khác vẫn xem được đầy đủ.
+                    </div>
+                    <div style="margin-top:20px; display:flex; gap:10px; flex-wrap:wrap;">
+                        <button class="btn btn-outline" onclick="resetStudentQuiz()">Làm chuyên đề khác</button>
+                        <button class="btn btn-primary" onclick="switchStudentTab('inbox')">Xem Lịch sử &amp; Nhận xét từ Giáo viên &rarr;</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab B: Lịch sử làm bài & Nhận xét từ Giáo viên -->
+            <div id="stuInboxSection" class="hidden">
+                <div class="card">
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                        <div>
+                            <h2 style="margin-bottom:4px;">Lịch sử Học tập &amp; Nhận xét từ Giáo viên</h2>
+                            <p style="margin:0; color:var(--muted); font-size:0.88rem;">
+                                Toàn bộ các lần làm bài đã lưu của em và lời nhận xét, hướng dẫn điều chỉnh do Giáo viên gửi lại.
+                            </p>
+                        </div>
+                        <div style="display:flex; gap:8px;">
+                            <button class="btn btn-outline btn-sm" onclick="manualSyncNow()">↻ Cập nhật nhận xét mới</button>
+                            <button class="btn btn-primary btn-sm" onclick="switchStudentTab('quiz')">+ Làm bài đánh giá mới</button>
+                        </div>
+                    </div>
+                </div>
+                <div id="studentInboxContainer"></div>
+            </div>
+        </div>
+
+        <!-- ================= GIAO DIỆN GIÁO VIÊN ================= -->
+        <div id="teacherPortal" class="hidden">
+            <!-- TAB 1 GIÁO VIÊN: NHẬN KẾT QUẢ, ĐÁNH GIÁ & GỬI NHẬN XÉT CHO HỌC SINH -->
+            <div id="tchReviewSection">
+                <div class="card">
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+                        <div>
+                            <h2 style="margin-bottom:4px;">Nhận Kết quả &amp; Gửi Nhận xét Phản hồi cho Học sinh</h2>
+                            <p style="margin:0; color:var(--muted); font-size:0.88rem;">
+                                Xem chi tiết bài làm của học sinh từ điện thoại/máy tính toàn lớp và gửi lời nhận xét trực tiếp về tài khoản học sinh.
+                            </p>
+                        </div>
+                        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                            <select id="reviewUnitFilter" onchange="renderTeacherReviewList()" style="width:auto; min-width:210px; font-weight:600;">
+                                <option value="all">Tất cả chuyên đề</option>
+                                <option value="unit1">Unit 1: Wh-words + to-V</option>
+                                <option value="unit2">Unit 2: Double comparatives</option>
+                                <option value="unit3">Unit 3: Modal verbs in 1st conditionals</option>
+                            </select>
+                            <select id="reviewStatusFilter" onchange="renderTeacherReviewList()" style="width:auto; min-width:190px; font-weight:600;">
+                                <option value="all">Tất cả trạng thái</option>
+                                <option value="pending">Chờ giáo viên nhận xét</option>
+                                <option value="reviewed">Đã gửi nhận xét</option>
+                            </select>
+                            <button class="btn btn-outline btn-sm" onclick="seedDemoData()">+ Nạp dữ liệu mẫu</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="teacherReviewListContainer"></div>
+            </div>
+
+            <!-- TAB 2 GIÁO VIÊN: BẢNG ĐIỀU PHỐI & CTT -->
+            <div id="tchDashboardSection" class="hidden">
+                <div class="card">
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+                        <div>
+                            <h2 style="margin-bottom:4px;">Bảng Điều phối Lớp học &amp; Phân tích Tâm trắc học (CTT)</h2>
+                            <p style="margin:0; color:var(--muted); font-size:0.88rem;">Tổng hợp mức độ làm chủ mục tiêu, độ khó (p), độ phân cách (D) và phân nhóm hỗ trợ toàn lớp</p>
+                        </div>
+                        <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+                            <select id="teacherUnitFilter" onchange="renderTeacherDashboard()" style="width:auto; min-width:255px; font-weight:600;">
+                                <option value="unit1">Unit 1: Wh-words + to-infinitives</option>
+                                <option value="unit2">Unit 2: Double comparatives</option>
+                                <option value="unit3">Unit 3: Modal verbs in 1st conditionals</option>
+                            </select>
+                            <button class="btn btn-outline" onclick="seedDemoData()">+ Nạp mẫu thực nghiệm</button>
+                            <button class="btn btn-outline" onclick="clearAllData()" style="color:var(--red);">Xóa dữ liệu</button>
+                            <button class="btn btn-primary" onclick="exportCSV()">Xuất Excel (.CSV)</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4 Chỉ số KPI -->
+                <div class="kpi-grid">
+                    <div class="kpi-card">
+                        <div class="kpi-title">Quy mô mẫu thực nghiệm</div>
+                        <div class="kpi-value" id="kpiTotal">0 HS</div>
+                        <div class="kpi-sub">Số lượt hoàn thành chẩn đoán</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-title">Đạt chuẩn trước hỗ trợ (Vòng 1)</div>
+                        <div class="kpi-value" id="kpiPreRate">0%</div>
+                        <div class="kpi-sub">Tỷ lệ làm chủ ngay lần 1</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-title">Đạt chuẩn sau hỗ trợ (Vòng 2)</div>
+                        <div class="kpi-value" id="kpiPostRate" style="color:var(--green);">0%</div>
+                        <div class="kpi-sub" id="kpiGainSub">Mức tăng trưởng (Learning Gain): +0%</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-title">Tỷ lệ Ngộ nhận cố hữu</div>
+                        <div class="kpi-value" id="kpiMisconception" style="color:var(--red);">0%</div>
+                        <div class="kpi-sub">Sai nhưng tự tin 100% (Cần ưu tiên sửa)</div>
+                    </div>
+                </div>
+
+                <!-- Biểu đồ 1 & Biểu đồ 2 -->
+                <div class="grid-2">
+                    <div class="card">
+                        <h3>1. Mức độ làm chủ theo Mục tiêu (Criterion-Referenced)</h3>
+                        <p style="font-size:0.8rem; color:var(--muted);">
+                            <span style="color:var(--green); font-weight:700;">■ Vững chắc</span> &nbsp;
+                            <span style="color:var(--purple); font-weight:700;">■ Đoán trúng</span> &nbsp;
+                            <span style="color:var(--blue); font-weight:700;">■ Đã sửa L2</span> &nbsp;
+                            <span style="color:var(--red); font-weight:700;">■ Chưa đạt</span>
+                        </p>
+                        <div id="loChartContainer"></div>
+                    </div>
+
+                    <div class="card">
+                        <h3>2. Chẩn đoán Lỗ hổng &amp; Ngộ nhận toàn lớp</h3>
+                        <p style="font-size:0.8rem; color:var(--muted);">
+                            Thống kê tần suất lỗi sai giúp giáo viên xác định nội dung cần giảng lại:
+                        </p>
+                        <div id="errorChartContainer"></div>
+                    </div>
+                </div>
+
+                <!-- Bảng Phân tích Tâm trắc học Câu hỏi (CTT) -->
+                <div class="card">
+                    <h3>3. Phân tích Chất lượng Câu hỏi theo Lý thuyết Trắc nghiệm Cổ điển (CTT)</h3>
+                    <div style="overflow-x:auto;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Mã MT</th>
+                                    <th>Bậc Bloom</th>
+                                    <th>Độ khó (p)</th>
+                                    <th>Độ phân cách (D)</th>
+                                    <th>Phân bố chọn A / B / C / D (Vòng 1)</th>
+                                    <th>Khuyến nghị thẩm định câu hỏi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="cttTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 4 Nhóm hành động sư phạm -->
+                <div class="grid-4">
+                    <div class="card stat-card" style="border-top: 4px solid var(--red); margin-bottom:0;">
+                        <h4 style="color:var(--red); margin-bottom:4px;">Nhóm 1: Ngộ nhận / Hổng sâu</h4>
+                        <p style="font-size:0.78rem; color:var(--muted);">Sai cả L1 &amp; L2 (GV kèm trực tiếp tại bàn)</p>
+                        <div id="groupRed" style="font-size:0.85rem; font-weight:600;"></div>
+                    </div>
+                    <div class="card stat-card" style="border-top: 4px solid var(--blue); margin-bottom:0;">
+                        <h4 style="color:var(--blue); margin-bottom:4px;">Nhóm 2: Tự điều chỉnh tiến bộ</h4>
+                        <p style="font-size:0.78rem; color:var(--muted);">Sai L1 nhưng hiểu gợi ý và sửa đúng L2</p>
+                        <div id="groupBlue" style="font-size:0.85rem; font-weight:600;"></div>
+                    </div>
+                    <div class="card stat-card" style="border-top: 4px solid var(--purple); margin-bottom:0;">
+                        <h4 style="color:var(--purple); margin-bottom:4px;">Nhóm 3: Đúng nhưng thiếu tự tin</h4>
+                        <p style="font-size:0.78rem; color:var(--muted);">Đúng ở mức Phân vân/Đoán mò (Giao bài củng cố)</p>
+                        <div id="groupPurple" style="font-size:0.85rem; font-weight:600;"></div>
+                    </div>
+                    <div class="card stat-card" style="border-top: 4px solid var(--green); margin-bottom:0;">
+                        <h4 style="color:var(--green); margin-bottom:4px;">Nhóm 4: Thành thạo thực chất</h4>
+                        <p style="font-size:0.78rem; color:var(--muted);">100% đúng + Chắc chắn (Giao bài vận dụng cao)</p>
+                        <div id="groupGreen" style="font-size:0.85rem; font-weight:600;"></div>
+                    </div>
+                </div>
+
+                <!-- Bảng tổng hợp chi tiết -->
+                <div class="card">
+                    <h3>4. Bảng Tổng hợp Hồ sơ Tiến bộ Toàn lớp</h3>
+                    <div style="overflow-x:auto;">
+                        <table>
+                            <thead><tr id="studentTableHead"></tr></thead>
+                            <tbody id="studentTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 3 GIÁO VIÊN: QUẢN LÝ TÀI KHOẢN HỌC SINH -->
+            <div id="tchAccountsSection" class="hidden">
+                <div class="card">
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                        <div>
+                            <h2 style="margin-bottom:4px;">Danh sách Tài khoản Học sinh Đã Đăng ký</h2>
+                            <p style="margin:0; color:var(--muted); font-size:0.88rem;">
+                                Theo dõi tài khoản của học sinh trong lớp và hỗ trợ đặt lại mật khẩu nếu học sinh quên.
+                            </p>
+                        </div>
+                        <button class="btn btn-outline btn-sm" onclick="manualSyncNow()">↻ Cập nhật danh sách mới</button>
+                    </div>
+                    <div style="overflow-x:auto; margin-top:12px;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Họ và tên</th>
+                                    <th>Lớp</th>
+                                    <th>Tên đăng nhập</th>
+                                    <th>Số bài đã nộp</th>
+                                    <th>Ngày tạo tài khoản</th>
+                                    <th>Hỗ trợ mật khẩu</th>
+                                </tr>
+                            </thead>
+                            <tbody id="accountsTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 4 GIÁO VIÊN: BẢNG ĐẶC TẢ 2 CHIỀU -->
+            <div id="tchSpecSection" class="hidden">
+                <div class="card">
+                    <span class="badge badge-lo">Cơ sở Khoa học Đo lường &amp; Đánh giá Giáo dục</span>
+                    <h2 style="margin-top:8px;">Bảng Đặc tả 2 Chiều (Table of Specifications)</h2>
+                    <p style="color:var(--muted);">
+                        Phân rã mục tiêu dạy học theo 3 bậc nhận thức Bloom (<strong>Nhớ – Hiểu – Vận dụng</strong>) và cặp câu hỏi tương đương để đảm bảo độ tin cậy kiểm tra song song.
+                    </p>
+
+                    <div style="margin: 14px 0; display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+                        <label for="specUnitSelect" style="margin:0;">Xem Bảng đặc tả của chuyên đề:</label>
+                        <select id="specUnitSelect" onchange="renderSpecTable()" style="width:auto; min-width:280px; font-weight:600;">
+                            <option value="unit1">Unit 1: Question words before to-infinitives</option>
+                            <option value="unit2">Unit 2: Double comparatives</option>
+                            <option value="unit3">Unit 3: Modal verbs in first conditionals</option>
+                        </select>
+                    </div>
+
+                    <div style="overflow-x:auto;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th style="width:28%;">Nội dung / Mục tiêu dạy học (MT)</th>
+                                    <th style="width:18%;">Bậc 1: Nhớ<br><span style="font-weight:400; font-size:0.78rem;">(Nhận diện cấu trúc)</span></th>
+                                    <th style="width:18%;">Bậc 2: Hiểu<br><span style="font-weight:400; font-size:0.78rem;">(Phân biệt ngữ nghĩa)</span></th>
+                                    <th style="width:18%;">Bậc 3: Vận dụng<br><span style="font-weight:400; font-size:0.78rem;">(Ngữ cảnh phức hợp)</span></th>
+                                    <th style="width:18%;">Cấu trúc đo lường</th>
+                                </tr>
+                            </thead>
+                            <tbody id="specTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <strong>Hệ thống Đánh giá Chẩn đoán Quá trình (AfL &amp; CATs) – Tiếng Anh 9 Global Success</strong> • Sản phẩm môn học: Công nghệ đánh giá trong lớp học (Ngành Quản trị Công nghệ Giáo dục – Trường Đại học Giáo dục, ĐHQGHN)
+    </footer>
+
+    <script>
+        // =========================================================================
+        // CẤU HÌNH SUPABASE (DÁN PROJECT URL VÀ ANON KEY VÀO ĐÂY TRƯỚC KHI ĐẨY LÊN
+        // GITHUB / VERCEL ĐỂ TOÀN BỘ HỌC SINH & GIÁO VIÊN TỰ ĐỘNG KẾT NỐI)
+        // =========================================================================
+        const DEFAULT_SUPABASE_URL = "https://iwlvajzysbmxajhcsodq.supabase.co";
+        const DEFAULT_SUPABASE_ANON_KEY = "sb_publishable_oEB22M2UBrrlFBxugoor5Q_qzt7P5Dr";
+
+        const STORAGE_RECORDS_KEY = 'afl_eng9_v6_records_map';
+        const STORAGE_USERS_KEY = 'afl_eng9_v6_users_map';
+        const STORAGE_SB_URL_KEY = 'afl_eng9_v6_sb_url';
+        const STORAGE_SB_KEY_KEY = 'afl_eng9_v6_sb_key';
+        const SESSION_KEY = 'afl_eng9_v6_session';
+
+        const MODULES = {
+            unit1: {
+                id: "unit1",
+                name: "Unit 1: Question words before to-infinitives",
+                items: [
+                    {
+                        loId: "MT1.1",
+                        bloom: "Nhớ",
+                        weight: "25%",
+                        shortLabel: "MT1.1: Cấu trúc Wh + to-V",
+                        loTitle: "MT1.1: Nhận diện và sử dụng đúng dạng động từ nguyên mẫu có 'to' sau từ để hỏi",
+                        primary: {
+                            question: "We are visiting Bat Trang pottery village tomorrow, and I don't know what ______ as souvenirs for my friends.",
+                            options: [
+                                { text: "buying", isCorrect: false, errorType: "Lỗi cú pháp (Dùng V-ing)", hint: "Sau các từ để hỏi (what, where, how...) không dùng V-ing. Hãy chuyển động từ về dạng nguyên mẫu có 'to'." },
+                                { text: "to buy", isCorrect: true, explanation: "Sau từ để hỏi 'what' ta dùng động từ nguyên mẫu có 'to' (what to buy)." },
+                                { text: "buy", isCorrect: false, errorType: "Lỗi cú pháp (Thiếu 'to')", hint: "Động từ 'buy' đứng sau 'what' cần có tiểu từ 'to' đi kèm." },
+                                { text: "bought", isCorrect: false, errorType: "Lỗi cú pháp (Chia thì quá khứ)", hint: "Cụm 'what + động từ' ở đây không có chủ ngữ riêng nên không chia thì quá khứ." }
+                            ]
+                        },
+                        remediation: {
+                            question: "The local artisans showed us how ______ traditional conical hats (non la) step by step.",
+                            options: [
+                                { text: "making", isCorrect: false, errorType: "Lỗi cú pháp" },
+                                { text: "make", isCorrect: false, errorType: "Lỗi cú pháp" },
+                                { text: "to make", isCorrect: true },
+                                { text: "made", isCorrect: false, errorType: "Lỗi cú pháp" }
+                            ],
+                            explanation: "Cấu trúc chuẩn: how + to-infinitive (how to make: cách làm)."
+                        }
+                    },
+                    {
+                        loId: "MT1.2",
+                        bloom: "Hiểu",
+                        weight: "25%",
+                        shortLabel: "MT1.2: Phân biệt What / How",
+                        loTitle: "MT1.2: Phân biệt ngữ nghĩa giữa 'What' (đối tượng) và 'How' (cách thức) trước to-V",
+                        primary: {
+                            question: "My cousin just moved to Ho Chi Minh City. She is still learning ______ to use the public bus system efficiently.",
+                            options: [
+                                { text: "what", isCorrect: false, errorType: "Lỗi ngữ nghĩa (Nhầm What/How)", hint: "Phía sau đã có tân ngữ 'the public bus system'. Câu này hỏi về 'cách thức/phương pháp' sử dụng." },
+                                { text: "how", isCorrect: true, explanation: "'How to use' diễn tả phương pháp, cách thức sử dụng hệ thống xe buýt." },
+                                { text: "who", isCorrect: false, errorType: "Lỗi ngữ nghĩa (Nhầm từ để hỏi)", hint: "'Who' chỉ người, không phù hợp để diễn tả phương pháp sử dụng phương tiện." },
+                                { text: "which", isCorrect: false, errorType: "Lỗi ngữ nghĩa (Nhầm từ để hỏi)", hint: "'Which' thường đi kèm danh từ để lựa chọn (which bus), không đứng một mình trước 'to use'." }
+                            ]
+                        },
+                        remediation: {
+                            question: "Could you tell me ______ to do to reduce plastic waste in our neighborhood?",
+                            options: [
+                                { text: "how", isCorrect: false, errorType: "Lỗi ngữ nghĩa" },
+                                { text: "what", isCorrect: true },
+                                { text: "where", isCorrect: false, errorType: "Lỗi ngữ nghĩa" },
+                                { text: "why", isCorrect: false, errorType: "Lỗi cấu trúc" }
+                            ],
+                            explanation: "Động từ 'do' thiếu tân ngữ trực tiếp (làm CÁI GÌ), nên phải dùng 'what to do'."
+                        }
+                    },
+                    {
+                        loId: "MT1.3",
+                        bloom: "Hiểu",
+                        weight: "25%",
+                        shortLabel: "MT1.3: Phân biệt Where / When",
+                        loTitle: "MT1.3: Phân biệt ngữ nghĩa giữa 'Where' (địa điểm) và 'When' (thời điểm) trước to-V",
+                        primary: {
+                            question: "There are too many delicious street food stalls here. We can't decide ______ to have dinner first.",
+                            options: [
+                                { text: "when", isCorrect: false, errorType: "Lỗi ngữ nghĩa (Nhầm When/Where)", hint: "Ngữ cảnh nhắc tới 'too many street food stalls' — đang phân vân về ĐỊA ĐIỂM ăn chứ không phải giờ giấc." },
+                                { text: "where", isCorrect: true, explanation: "'Where to have dinner' chỉ địa điểm/quán ăn để dùng bữa tối." },
+                                { text: "what", isCorrect: false, errorType: "Lỗi ngữ nghĩa (Nhầm What/Where)", hint: "Sau 'have dinner' đã rõ ăn bữa tối rồi, điều còn thiếu là chọn địa điểm ở đâu." },
+                                { text: "why", isCorrect: false, errorType: "Lỗi cấu trúc (Dùng Why + to-V)", hint: "Từ để hỏi 'why' KHÔNG bao giờ đứng trực tiếp trước 'to-infinitive'." }
+                            ]
+                        },
+                        remediation: {
+                            question: "Our volunteer club hasn't decided ______ to start the clean-up campaign: this Saturday or next Sunday.",
+                            options: [
+                                { text: "where", isCorrect: false, errorType: "Lỗi ngữ nghĩa" },
+                                { text: "when", isCorrect: true },
+                                { text: "who", isCorrect: false, errorType: "Lỗi ngữ nghĩa" },
+                                { text: "how", isCorrect: false, errorType: "Lỗi ngữ nghĩa" }
+                            ],
+                            explanation: "Hai mốc thời gian ('this Saturday or next Sunday') cho thấy từ để hỏi cần dùng là 'when'."
+                        }
+                    },
+                    {
+                        loId: "MT1.4",
+                        bloom: "Vận dụng",
+                        weight: "25%",
+                        shortLabel: "MT1.4: Câu gián tiếp có tân ngữ",
+                        loTitle: "MT1.4: Vận dụng cấu trúc trong câu gián tiếp có tân ngữ (tell/advise + O + Wh-word + to-V)",
+                        primary: {
+                            question: "The community officer advised the residents ______ during a flash flood.",
+                            options: [
+                                { text: "where they should to go", isCorrect: false, errorType: "Lỗi cấu trúc (Lẫn mệnh đề & to-V)", hint: "Khi đã có chủ ngữ 'they' và 'should', không dùng 'to' nữa; hoặc rút gọn bỏ 'they should' để dùng 'where + to-V'." },
+                                { text: "where go", isCorrect: false, errorType: "Lỗi cú pháp (Thiếu 'to')", hint: "Sau từ để hỏi 'where' bắt buộc có 'to' trước động từ nguyên mẫu 'go'." },
+                                { text: "where to go", isCorrect: true, explanation: "Cấu trúc chuẩn: advise + O (the residents) + Wh-word (where) + to-V (to go)." },
+                                { text: "to where go", isCorrect: false, errorType: "Lỗi trật tự từ", hint: "Từ để hỏi 'where' phải đứng TRƯỚC cụm 'to go'." }
+                            ]
+                        },
+                        remediation: {
+                            question: "Before the trip, the tour guide told us ______ in case we got lost in the old town.",
+                            options: [
+                                { text: "who to contact", isCorrect: true },
+                                { text: "who contacting", isCorrect: false, errorType: "Lỗi cú pháp" },
+                                { text: "who we to contact", isCorrect: false, errorType: "Lỗi cấu trúc" },
+                                { text: "to who contact", isCorrect: false, errorType: "Lỗi trật tự từ" }
+                            ],
+                            explanation: "Cấu trúc chuẩn: tell + O (us) + who + to-infinitive (to contact)."
+                        }
+                    }
+                ]
+            },
+
+            unit2: {
+                id: "unit2",
+                name: "Unit 2: Double comparatives (So sánh kép)",
+                items: [
+                    {
+                        loId: "MT2.1",
+                        bloom: "Nhớ",
+                        weight: "33%",
+                        shortLabel: "MT2.1: Cấu trúc cơ bản & Mạo từ The",
+                        loTitle: "MT2.1: Nhận diện cấu trúc so sánh kép đồng tiến (The + comparative..., the + comparative...)",
+                        primary: {
+                            question: "______ the city gets, ______ it becomes for commuters during rush hour.",
+                            options: [
+                                { text: "The crowdeder / the badder", isCorrect: false, errorType: "Lỗi biến đổi tính từ", hint: "'Crowded' là tính từ dài (dùng 'more crowded'), còn 'bad' là tính từ bất quy tắc ('worse')." },
+                                { text: "The more crowded / the worse", isCorrect: true, explanation: "'Crowded' là tính từ dài -> 'the more crowded'; 'bad' bất quy tắc -> 'the worse'." },
+                                { text: "More crowded / worse", isCorrect: false, errorType: "Lỗi cú pháp (Thiếu mạo từ 'The')", hint: "Cả hai vế của cấu trúc so sánh kép đồng tiến đều BẮT BUỘC có mạo từ 'The' đứng đầu." },
+                                { text: "The more crowded / the worst", isCorrect: false, errorType: "Lỗi nhầm so sánh nhất", hint: "So sánh kép chỉ dùng dạng so sánh hơn ('worse'), không dùng so sánh nhất ('worst')." }
+                            ]
+                        },
+                        remediation: {
+                            question: "______ you leave for the airport, ______ chance you have of avoiding traffic jams.",
+                            options: [
+                                { text: "The earlier / the better", isCorrect: true },
+                                { text: "Earlier / better", isCorrect: false, errorType: "Lỗi cú pháp (Thiếu 'The')" },
+                                { text: "The earliest / the best", isCorrect: false, errorType: "Lỗi nhầm so sánh nhất" },
+                                { text: "The more early / the gooder", isCorrect: false, errorType: "Lỗi biến đổi tính từ" }
+                            ],
+                            explanation: "'Early' -> 'the earlier'; 'good' bất quy tắc -> 'the better'."
+                        }
+                    },
+                    {
+                        loId: "MT2.2",
+                        bloom: "Hiểu",
+                        weight: "33%",
+                        shortLabel: "MT2.2: Tính từ dài & Danh từ đếm được",
+                        loTitle: "MT2.2: Phân biệt biến đổi tính từ dài và danh từ đếm được/không đếm được trong so sánh kép",
+                        primary: {
+                            question: "______ public transport becomes, ______ private cars people will use.",
+                            options: [
+                                { text: "The more reliable / the fewer", isCorrect: true, explanation: "'Reliable' là tính từ dài -> 'the more reliable'; 'cars' là danh từ đếm được số nhiều -> 'the fewer'." },
+                                { text: "The more reliable / the less", isCorrect: false, errorType: "Lỗi danh từ đếm được (Less/Fewer)", hint: "'Private cars' là danh từ đếm được số nhiều, nên phải dùng 'fewer' thay vì 'less'." },
+                                { text: "The reliabler / the fewer", isCorrect: false, errorType: "Lỗi biến đổi tính từ", hint: "'Reliable' có 3 âm tiết nên dùng 'more reliable', không thêm đuôi '-er'." },
+                                { text: "The more reliably / the fewer", isCorrect: false, errorType: "Lỗi từ loại (Tính từ/Trạng từ)", hint: "Sau động từ liên kết 'becomes' cần một tính từ ('reliable'), không dùng trạng từ ('reliably')." }
+                            ]
+                        },
+                        remediation: {
+                            question: "______ the air pollution in megacities gets, ______ residents feel about their health.",
+                            options: [
+                                { text: "The more serious / the more worried", isCorrect: true },
+                                { text: "The seriouser / the worrieder", isCorrect: false, errorType: "Lỗi biến đổi tính từ" },
+                                { text: "More serious / more worried", isCorrect: false, errorType: "Lỗi cú pháp (Thiếu 'The')" },
+                                { text: "The most serious / the most worried", isCorrect: false, errorType: "Lỗi nhầm so sánh nhất" }
+                            ],
+                            explanation: "Cả 'serious' và 'worried' đều dùng 'more' ở dạng so sánh hơn kèm 'The' ở đầu mỗi vế."
+                        }
+                    },
+                    {
+                        loId: "MT2.3",
+                        bloom: "Vận dụng",
+                        weight: "34%",
+                        shortLabel: "MT2.3: Trật tự từ mệnh đề so sánh kép",
+                        loTitle: "MT2.3: Vận dụng trật tự từ chuẩn (The + comparative + S + V — không đảo ngữ)",
+                        primary: {
+                            question: "The more modern a city is, ______.",
+                            options: [
+                                { text: "the higher the cost of living becomes", isCorrect: true, explanation: "Trật tự chuẩn: The + comparative (higher) + Chủ ngữ (the cost of living) + Động từ (becomes)." },
+                                { text: "the higher becomes the cost of living", isCorrect: false, errorType: "Lỗi trật tự từ (Đảo động từ)", hint: "Sau cụm so sánh 'the higher', ta đặt Chủ ngữ trước rồi mới đến Động từ (S + V), không đảo động từ lên trước chủ ngữ." },
+                                { text: "the cost of living becomes higher", isCorrect: false, errorType: "Lỗi cú pháp (Sai vị trí so sánh)", hint: "Cụm 'the higher' phải được đưa lên ngay đầu vế thứ hai." },
+                                { text: "the highest the cost of living is", isCorrect: false, errorType: "Lỗi nhầm so sánh nhất", hint: "Dùng dạng so sánh hơn 'the higher', không dùng 'the highest'." }
+                            ]
+                        },
+                        remediation: {
+                            question: "The more green spaces a neighborhood has, ______.",
+                            options: [
+                                { text: "the more attractive it is to young families", isCorrect: true },
+                                { text: "the more attractive is it to young families", isCorrect: false, errorType: "Lỗi trật tự từ" },
+                                { text: "it is more attractive to young families", isCorrect: false, errorType: "Lỗi cú pháp" },
+                                { text: "the most attractive it is to young families", isCorrect: false, errorType: "Lỗi nhầm so sánh nhất" }
+                            ],
+                            explanation: "Trật tự chuẩn: The + more attractive + S (it) + V (is)."
+                        }
+                    }
+                ]
+            },
+
+            unit3: {
+                id: "unit3",
+                name: "Unit 3: Modal verbs in first conditionals",
+                items: [
+                    {
+                        loId: "MT3.1",
+                        bloom: "Nhớ",
+                        weight: "33%",
+                        shortLabel: "MT3.1: Cấu trúc câu ĐK loại 1 + Modal",
+                        loTitle: "MT3.1: Nhận diện cấu trúc chuẩn (If + S + V hiện tại đơn, S + modal + V nguyên thể)",
+                        primary: {
+                            question: "If teens ______ enough sleep every night, they ______ concentrate better at school.",
+                            options: [
+                                { text: "get / can", isCorrect: true, explanation: "Mệnh đề If chia hiện tại đơn ('get'), mệnh đề chính dùng 'can' chỉ khả năng." },
+                                { text: "will get / can", isCorrect: false, errorType: "Lỗi cú pháp (Dùng 'will' sau If)", hint: "Trong câu điều kiện loại 1, mệnh đề chứa 'If' luôn chia ở thì Hiện tại đơn, KHÔNG dùng 'will'." },
+                                { text: "get / can to", isCorrect: false, errorType: "Lỗi cú pháp (Thừa 'to' sau Modal)", hint: "Sau động từ khuyết thiếu ('can', 'should', 'must'...) luôn là động từ nguyên thể KHÔNG 'to'." },
+                                { text: "got / could", isCorrect: false, errorType: "Lỗi nhầm câu điều kiện loại 2", hint: "Đây là khả năng có thật ở hiện tại nên dùng điều kiện loại 1." }
+                            ]
+                        },
+                        remediation: {
+                            question: "If you ______ to maintain a healthy weight, you ______ cut down on sugary drinks.",
+                            options: [
+                                { text: "want / should", isCorrect: true },
+                                { text: "will want / should", isCorrect: false, errorType: "Lỗi cú pháp" },
+                                { text: "want / should to", isCorrect: false, errorType: "Lỗi cú pháp" },
+                                { text: "wanted / should", isCorrect: false, errorType: "Lỗi thì động từ" }
+                            ],
+                            explanation: "If + hiện tại đơn ('want'), mệnh đề chính dùng 'should + V nguyên thể'."
+                        }
+                    },
+                    {
+                        loId: "MT3.2",
+                        bloom: "Hiểu",
+                        weight: "33%",
+                        shortLabel: "MT3.2: Phân biệt sắc thái Should / Must / Might",
+                        loTitle: "MT3.2: Chọn đúng động từ khuyết thiếu theo sắc thái ngữ nghĩa (Lời khuyên / Bắt buộc / Khả năng)",
+                        primary: {
+                            question: "If you want to avoid feeling exhausted before exams, you ______ stay up past midnight.",
+                            options: [
+                                { text: "shouldn't", isCorrect: true, explanation: "'Shouldn't' diễn tả lời khuyên hợp lý để bảo vệ sức khỏe trước kỳ thi." },
+                                { text: "might", isCorrect: false, errorType: "Lỗi ngữ nghĩa (Sai sắc thái Modal)", hint: "'Might' nghĩa là 'có lẽ sẽ' — mâu thuẫn với mục đích tránh kiệt sức." },
+                                { text: "must", isCorrect: false, errorType: "Lỗi ngữ nghĩa (Nghĩa ngược tình huống)", hint: "Dùng 'must' (bắt buộc thức khuya) làm ngược hoàn toàn ý nghĩa câu." },
+                                { text: "can", isCorrect: false, errorType: "Lỗi ngữ nghĩa (Sai sắc thái Modal)", hint: "Câu này mang tính chất đưa ra lời khuyên nên/không nên làm gì." }
+                            ]
+                        },
+                        remediation: {
+                            question: "If we don't manage our study schedule well, we ______ feel stressed out before the finals.",
+                            options: [
+                                { text: "might", isCorrect: true },
+                                { text: "mustn't", isCorrect: false, errorType: "Lỗi ngữ nghĩa" },
+                                { text: "should", isCorrect: false, errorType: "Lỗi ngữ nghĩa" },
+                                { text: "can't", isCorrect: false, errorType: "Lỗi ngữ nghĩa" }
+                            ],
+                            explanation: "'Might' diễn tả một hệ quả có thể xảy ra nếu không quản lý thời gian tốt."
+                        }
+                    },
+                    {
+                        loId: "MT3.3",
+                        bloom: "Vận dụng",
+                        weight: "34%",
+                        shortLabel: "MT3.3: Chia động từ ngôi 3 & Mệnh đề đảo",
+                        loTitle: "MT3.3: Vận dụng chia động từ ngôi thứ 3 số ít khi đảo vị trí hai mệnh đề điều kiện",
+                        primary: {
+                            question: "Nam ______ achieve his fitness goal if he ______ regularly three times a week.",
+                            options: [
+                                { text: "can / exercises", isCorrect: true, explanation: "Chủ ngữ 'he' ở mệnh đề If chia hiện tại đơn thêm '-s' ('exercises'); mệnh đề chính dùng 'can'." },
+                                { text: "can / exercise", isCorrect: false, errorType: "Lỗi chia thì hiện tại đơn", hint: "Chủ ngữ trong mệnh đề If là 'he' (ngôi thứ 3 số ít), động từ 'exercise' cần chia đúng dạng." },
+                                { text: "cans / exercises", isCorrect: false, errorType: "Lỗi cú pháp (Chia ngôi Modal)", hint: "Động từ khuyết thiếu 'can' không bao giờ thêm '-s' dù chủ ngữ là ngôi thứ 3 số ít." },
+                                { text: "can / will exercise", isCorrect: false, errorType: "Lỗi cú pháp (Dùng 'will' sau If)", hint: "Dù mệnh đề 'if' đứng ở cuối câu, động từ sau 'if' vẫn chia ở thì Hiện tại đơn." }
+                            ]
+                        },
+                        remediation: {
+                            question: "A student ______ consult a school counselor if she ______ overwhelmed by peer pressure.",
+                            options: [
+                                { text: "should / feels", isCorrect: true },
+                                { text: "should / feel", isCorrect: false, errorType: "Lỗi chia thì hiện tại đơn" },
+                                { text: "shoulds / feels", isCorrect: false, errorType: "Lỗi cú pháp" },
+                                { text: "should / will feel", isCorrect: false, errorType: "Lỗi cú pháp" }
+                            ],
+                            explanation: "Mệnh đề chính dùng 'should', mệnh đề If chủ ngữ 'she' chia hiện tại đơn 'feels'."
+                        }
+                    }
+                ]
+            }
+        };
+
+        // =========================================================================
+        // LỚP KẾT NỐI SUPABASE & LƯU TRỮ DỮ LIỆU ĐA THIẾT BỊ
+        // =========================================================================
+        let sbClient = null;
+        let sbRealtimeChannel = null;
+
+        function getSupabaseCreds() {
+            const url = (localStorage.getItem(STORAGE_SB_URL_KEY) || DEFAULT_SUPABASE_URL || "").trim().replace(/\/+$/, "");
+            const key = (localStorage.getItem(STORAGE_SB_KEY_KEY) || DEFAULT_SUPABASE_ANON_KEY || "").trim();
+            return { url, key };
+        }
+
+        function initSupabaseClient() {
+            const { url, key } = getSupabaseCreds();
+            if (!url || !key || !window.supabase) {
+                sbClient = null;
+                updateCloudStatusUI(false);
+                return false;
+            }
+            try {
+                sbClient = window.supabase.createClient(url, key);
+                subscribeRealtime();
+                return true;
+            } catch (e) {
+                sbClient = null;
+                updateCloudStatusUI(false, '⚠ Lỗi khởi tạo Supabase');
+                return false;
+            }
+        }
+
+        function subscribeRealtime() {
+            if (!sbClient) return;
+            if (sbRealtimeChannel) {
+                sbClient.removeChannel(sbRealtimeChannel);
+            }
+            sbRealtimeChannel = sbClient
+                .channel('afl_classroom_sync')
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'afl_records' }, async () => {
+                    await syncFromSupabase();
+                    refreshCurrentScreen();
+                })
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'afl_users' }, async () => {
+                    await syncFromSupabase();
+                    refreshCurrentScreen();
+                })
+                .subscribe();
+        }
+
+        function updateCloudStatusUI(isConnected, customText) {
+            const pill = document.getElementById('cloudStatusPill');
+            const warnStrip = document.getElementById('localWarningStrip');
+            if (isConnected) {
+                pill.className = 'sync-pill sync-online';
+                pill.textContent = customText || '● Đã đồng bộ Supabase Toàn lớp';
+                if (warnStrip) warnStrip.classList.add('hidden');
+            } else {
+                pill.className = 'sync-pill sync-local';
+                pill.textContent = customText || '● Chế độ Cục bộ (Bấm để kết nối Supabase)';
+                if (warnStrip) warnStrip.classList.remove('hidden');
+            }
+        }
+
+        function toggleCloudModal() {
+            const panel = document.getElementById('cloudConfigPanel');
+            panel.classList.toggle('hidden');
+            if (!panel.classList.contains('hidden')) {
+                const { url, key } = getSupabaseCreds();
+                document.getElementById('sbUrlInput').value = url;
+                document.getElementById('sbKeyInput').value = key;
+            }
+        }
+
+        async function saveSupabaseConfig() {
+            const url = document.getElementById('sbUrlInput').value.trim().replace(/\/+$/, "");
+            const key = document.getElementById('sbKeyInput').value.trim();
+            if (!url.startsWith('https://') || key.length < 20) {
+                alert("Vui lòng nhập đầy đủ Supabase Project URL (https://...) và anon public key hợp lệ.");
+                return;
+            }
+            localStorage.setItem(STORAGE_SB_URL_KEY, url);
+            localStorage.setItem(STORAGE_SB_KEY_KEY, key);
+            initSupabaseClient();
+            updateCloudStatusUI(true, '↻ Đang đồng bộ...');
+            const ok = await syncFromSupabase();
+            if (ok) {
+                alert("Kết nối Supabase thành công! Dữ liệu tài khoản và bài làm sẽ tự động đồng bộ trên mọi thiết bị.");
+                document.getElementById('cloudConfigPanel').classList.add('hidden');
+                refreshCurrentScreen();
+            } else {
+                alert("Không thể truy vấn bảng trên Supabase. Hãy kiểm tra lại bạn đã chạy lệnh SQL tạo 2 bảng afl_users và afl_records chưa.");
+                updateCloudStatusUI(false);
+            }
+        }
+
+        function disconnectSupabase() {
+            localStorage.removeItem(STORAGE_SB_URL_KEY);
+            localStorage.removeItem(STORAGE_SB_KEY_KEY);
+            sbClient = null;
+            document.getElementById('sbUrlInput').value = "";
+            document.getElementById('sbKeyInput').value = "";
+            updateCloudStatusUI(false);
+            document.getElementById('cloudConfigPanel').classList.add('hidden');
+        }
+
+        function getUsersMap() {
+            return JSON.parse(localStorage.getItem(STORAGE_USERS_KEY) || '{}');
+        }
+        function saveUsersMap(map) {
+            localStorage.setItem(STORAGE_USERS_KEY, JSON.stringify(map));
+        }
+        function getRecordsMap() {
+            return JSON.parse(localStorage.getItem(STORAGE_RECORDS_KEY) || '{}');
+        }
+        function saveRecordsMap(map) {
+            localStorage.setItem(STORAGE_RECORDS_KEY, JSON.stringify(map));
+        }
+        function getRecordsArray() {
+            const map = getRecordsMap();
+            return Object.values(map).sort((a, b) => (b.createdAtMs || 0) - (a.createdAtMs || 0));
+        }
+
+        // Chuyển đổi cấu trúc dữ liệu giữa JS (camelCase) và bảng PostgreSQL Supabase (snake_case)
+        function userToRow(u) {
+            return {
+                username: u.username,
+                password: u.password,
+                full_name: u.fullName,
+                class_name: u.className,
+                created_at: u.createdAt || '',
+                updated_at_ms: u.updatedAtMs || Date.now()
+            };
+        }
+        function rowToUser(row) {
+            return {
+                username: row.username,
+                password: row.password,
+                fullName: row.full_name,
+                className: row.class_name,
+                createdAt: row.created_at || '',
+                updatedAtMs: Number(row.updated_at_ms || 0)
+            };
+        }
+
+        function recordToRow(r) {
+            return {
+                id: r.id,
+                created_at_ms: r.createdAtMs || Date.now(),
+                updated_at_ms: r.updatedAtMs || Date.now(),
+                student_username: r.studentUsername || '',
+                unit_id: r.unitId,
+                unit_name: r.unitName,
+                name: r.name,
+                class_name: r.className,
+                timestamp: r.timestamp,
+                primary_choices: r.primaryChoices || {},
+                primary_correct: r.primaryCorrect || {},
+                results: r.results || {},
+                diagnostics: r.diagnostics || [],
+                misconception_count: r.misconceptionCount || 0,
+                self_rating: r.selfRating || null,
+                qualitative_note: r.qualitativeNote || '',
+                teacher_rating: r.teacherRating || '',
+                teacher_feedback: r.teacherFeedback || '',
+                teacher_reviewed_at: r.teacherReviewedAt || '',
+                student_read_feedback: !!r.studentReadFeedback
+            };
+        }
+        function rowToRecord(row) {
+            return {
+                id: row.id,
+                createdAtMs: Number(row.created_at_ms || 0),
+                updatedAtMs: Number(row.updated_at_ms || 0),
+                studentUsername: row.student_username || '',
+                unitId: row.unit_id,
+                unitName: row.unit_name,
+                name: row.name,
+                className: row.class_name,
+                timestamp: row.timestamp,
+                primaryChoices: row.primary_choices || {},
+                primaryCorrect: row.primary_correct || {},
+                results: row.results || {},
+                diagnostics: row.diagnostics || [],
+                misconceptionCount: Number(row.misconception_count || 0),
+                selfRating: row.self_rating,
+                qualitativeNote: row.qualitative_note || '',
+                teacherRating: row.teacher_rating || '',
+                teacherFeedback: row.teacher_feedback || '',
+                teacherReviewedAt: row.teacher_reviewed_at || '',
+                studentReadFeedback: !!row.student_read_feedback
+            };
+        }
+
+        async function syncFromSupabase() {
+            if (!sbClient) {
+                updateCloudStatusUI(false);
+                return false;
+            }
+            try {
+                const [uRes, rRes] = await Promise.all([
+                    sbClient.from('afl_users').select('*'),
+                    sbClient.from('afl_records').select('*')
+                ]);
+                if (uRes.error || rRes.error) throw (uRes.error || rRes.error);
+
+                const localUsers = getUsersMap();
+                const mergedUsers = { ...localUsers };
+                (uRes.data || []).forEach(row => {
+                    const remU = rowToUser(row);
+                    const locU = localUsers[remU.username];
+                    if (!locU || remU.updatedAtMs >= (locU.updatedAtMs || 0)) {
+                        mergedUsers[remU.username] = remU;
+                    }
+                });
+                saveUsersMap(mergedUsers);
+
+                const localRecords = getRecordsMap();
+                const mergedRecords = { ...localRecords };
+                (rRes.data || []).forEach(row => {
+                    const remR = rowToRecord(row);
+                    const locR = localRecords[remR.id];
+                    if (!locR || remR.updatedAtMs >= (locR.updatedAtMs || 0)) {
+                        mergedRecords[remR.id] = remR;
+                    }
+                });
+                saveRecordsMap(mergedRecords);
+
+                updateCloudStatusUI(true);
+                return true;
+            } catch (e) {
+                console.error("Supabase sync error:", e);
+                updateCloudStatusUI(false, '⚠ Lỗi kết nối Supabase');
+                return false;
+            }
+        }
+
+        async function pushUserToSupabase(user) {
+            user.updatedAtMs = Date.now();
+            const map = getUsersMap();
+            map[user.username] = user;
+            saveUsersMap(map);
+
+            if (!sbClient) return;
+            try {
+                const { error } = await sbClient.from('afl_users').upsert(userToRow(user), { onConflict: 'username' });
+                if (error) throw error;
+                updateCloudStatusUI(true);
+            } catch (e) {
+                console.error("Push user error:", e);
+                updateCloudStatusUI(false, '⚠ Chưa lưu được tài khoản lên Supabase');
+            }
+        }
+
+        async function pushRecordToSupabase(record) {
+            record.updatedAtMs = Date.now();
+            const map = getRecordsMap();
+            map[record.id] = record;
+            saveRecordsMap(map);
+
+            if (!sbClient) return;
+            try {
+                const { error } = await sbClient.from('afl_records').upsert(recordToRow(record), { onConflict: 'id' });
+                if (error) throw error;
+                updateCloudStatusUI(true);
+            } catch (e) {
+                console.error("Push record error:", e);
+                updateCloudStatusUI(false, '⚠ Chưa lưu được bài làm lên Supabase');
+            }
+        }
+
+        async function manualSyncNow() {
+            if (!sbClient) {
+                toggleCloudModal();
+                return;
+            }
+            const ok = await syncFromSupabase();
+            if (ok) refreshCurrentScreen();
+        }
+
+        function refreshCurrentScreen() {
+            if (!sessionUser) return;
+            if (sessionUser.role === 'student') {
+                updateStudentProfileCard();
+                updateStudentUnreadBadge();
+                if (!document.getElementById('stuInboxSection').classList.contains('hidden')) {
+                    renderStudentInbox();
+                }
+            } else if (sessionUser.role === 'teacher') {
+                updateTeacherPendingBadge();
+                if (!document.getElementById('tchReviewSection').classList.contains('hidden')) {
+                    renderTeacherReviewList();
+                }
+                if (!document.getElementById('tchDashboardSection').classList.contains('hidden')) {
+                    renderTeacherDashboard();
+                }
+                if (!document.getElementById('tchAccountsSection').classList.contains('hidden')) {
+                    renderTeacherAccountsList();
+                }
+            }
+        }
+
+        // =========================================================================
+        // TRẠNG THÁI PHIÊN ĐĂNG NHẬP & LÀM BÀI
+        // =========================================================================
+        let sessionUser = null;
+        let currentAttempt = null;
+        let activeModule = null;
+        let qIndex = 0;
+        let isRemediation = false;
+        let selectedOptIdx = null;
+        let selectedConf = null;
+        let questionEvaluated = false;
+        let selectedSelfScale = null;
+        let isRenderingInbox = false;
+
+        function escapeHtml(str) {
+            return String(str || '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
+
+        function normalizeUsername(raw) {
+            return String(raw || '').trim().toLowerCase().replace(/[^a-z0-9_.-]/g, '');
+        }
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            if (initSupabaseClient()) {
+                await syncFromSupabase();
+            }
+
+            const savedSession = sessionStorage.getItem(SESSION_KEY) || localStorage.getItem(SESSION_KEY);
+            if (savedSession) {
+                sessionUser = JSON.parse(savedSession);
+                applySessionUI();
+            }
+
+            // Đồng bộ bổ sung mỗi 5 giây (bên cạnh kênh Realtime tức thì)
+            setInterval(async () => {
+                if (!sbClient) return;
+                const activeTag = document.activeElement ? document.activeElement.tagName : '';
+                if (activeTag === 'TEXTAREA' || activeTag === 'INPUT' || activeTag === 'SELECT') return;
+
+                const ok = await syncFromSupabase();
+                if (ok) refreshCurrentScreen();
+            }, 5000);
+        });
+
+        // ================= ĐĂNG KÝ / ĐĂNG NHẬP / ĐỔI MẬT KHẨU / ĐĂNG XUẤT =================
+        function switchStuAuthMode(mode) {
+            const isLogin = mode === 'login';
+            document.getElementById('tabStuLoginMode').classList.toggle('active', isLogin);
+            document.getElementById('tabStuRegMode').classList.toggle('active', !isLogin);
+            document.getElementById('stuLoginForm').classList.toggle('hidden', !isLogin);
+            document.getElementById('stuRegisterForm').classList.toggle('hidden', isLogin);
+        }
+
+        async function registerStudent() {
+            const fullName = document.getElementById('regStuFullName').value.trim();
+            const className = document.getElementById('regStuClass').value.trim();
+            const username = normalizeUsername(document.getElementById('regStuUser').value);
+            const password = document.getElementById('regStuPass').value.trim();
+
+            if (!fullName || !className || !username || !password) {
+                alert("Vui lòng điền đầy đủ Họ tên, Lớp, Tên đăng nhập và Mật khẩu.");
+                return;
+            }
+            if (password.length < 4) {
+                alert("Mật khẩu cần có ít nhất 4 ký tự để bảo vệ lịch sử học tập của em.");
+                return;
+            }
+
+            await syncFromSupabase();
+            const users = getUsersMap();
+            if (users[username]) {
+                alert(`Tên đăng nhập "${username}" đã tồn tại. Nếu đây là tài khoản của em, hãy chuyển sang thẻ "Đăng nhập" và nhập mật khẩu.`);
+                return;
+            }
+
+            const newUser = {
+                username,
+                password,
+                fullName,
+                className,
+                createdAt: new Date().toLocaleString('vi-VN'),
+                updatedAtMs: Date.now()
+            };
+            await pushUserToSupabase(newUser);
+
+            sessionUser = { role: 'student', username, name: fullName, className };
+            sessionStorage.setItem(SESSION_KEY, JSON.stringify(sessionUser));
+            localStorage.setItem(SESSION_KEY, JSON.stringify(sessionUser));
+            applySessionUI();
+        }
+
+        async function loginAsStudent() {
+            const username = normalizeUsername(document.getElementById('loginStuUser').value);
+            const password = document.getElementById('loginStuPass').value.trim();
+
+            if (!username || !password) {
+                alert("Vui lòng nhập Tên đăng nhập và Mật khẩu.");
+                return;
+            }
+
+            await syncFromSupabase();
+            const users = getUsersMap();
+            const account = users[username];
+
+            if (!account) {
+                alert(`Không tìm thấy tài khoản "${username}". Nếu em chưa có tài khoản, hãy bấm vào thẻ "Đăng ký tài khoản mới" ngay phía trên.`);
+                return;
+            }
+            if (account.password !== password) {
+                alert("Mật khẩu không chính xác. Vui lòng kiểm tra lại (hoặc nhờ Giáo viên đặt lại mật khẩu).");
+                return;
+            }
+
+            sessionUser = {
+                role: 'student',
+                username: account.username,
+                name: account.fullName,
+                className: account.className
+            };
+            sessionStorage.setItem(SESSION_KEY, JSON.stringify(sessionUser));
+            localStorage.setItem(SESSION_KEY, JSON.stringify(sessionUser));
+            applySessionUI();
+        }
+
+        async function changeStudentPassword() {
+            if (!sessionUser || sessionUser.role !== 'student') return;
+            const newPass = prompt("Nhập mật khẩu mới cho tài khoản của em (từ 4 ký tự trở lên):");
+            if (newPass === null) return;
+            if (newPass.trim().length < 4) {
+                alert("Mật khẩu mới phải có ít nhất 4 ký tự.");
+                return;
+            }
+            await syncFromSupabase();
+            const users = getUsersMap();
+            if (users[sessionUser.username]) {
+                users[sessionUser.username].password = newPass.trim();
+                await pushUserToSupabase(users[sessionUser.username]);
+                alert("Đã đổi mật khẩu thành công! Em hãy ghi nhớ mật khẩu mới cho lần đăng nhập sau.");
+            }
+        }
+
+        async function loginAsTeacher() {
+            const user = document.getElementById('loginTchUser').value.trim();
+            const pass = document.getElementById('loginTchPass').value.trim();
+            if (user !== 'giaovien' || pass !== '123456') {
+                alert("Sai tên đăng nhập hoặc mật khẩu giáo viên (Mặc định: giaovien / 123456).");
+                return;
+            }
+            await syncFromSupabase();
+            sessionUser = { role: 'teacher', name: 'Giáo viên Bộ môn' };
+            sessionStorage.setItem(SESSION_KEY, JSON.stringify(sessionUser));
+            localStorage.setItem(SESSION_KEY, JSON.stringify(sessionUser));
+            applySessionUI();
+        }
+
+        function logout() {
+            sessionUser = null;
+            sessionStorage.removeItem(SESSION_KEY);
+            localStorage.removeItem(SESSION_KEY);
+            document.getElementById('loginPortal').classList.remove('hidden');
+            document.getElementById('studentPortal').classList.add('hidden');
+            document.getElementById('teacherPortal').classList.add('hidden');
+            document.getElementById('studentNav').classList.add('hidden');
+            document.getElementById('teacherNav').classList.add('hidden');
+        }
+
+        function applySessionUI() {
+            document.getElementById('loginPortal').classList.add('hidden');
+            if (sessionUser.role === 'student') {
+                document.getElementById('teacherPortal').classList.add('hidden');
+                document.getElementById('teacherNav').classList.add('hidden');
+                document.getElementById('studentPortal').classList.remove('hidden');
+                document.getElementById('studentNav').classList.remove('hidden');
+                document.getElementById('stuUserBadge').textContent = `${sessionUser.name} (${sessionUser.className})`;
+                updateStudentProfileCard();
+                updateStudentUnreadBadge();
+                switchStudentTab('quiz');
+                resetStudentQuiz();
+            } else {
+                document.getElementById('studentPortal').classList.add('hidden');
+                document.getElementById('studentNav').classList.add('hidden');
+                document.getElementById('teacherPortal').classList.remove('hidden');
+                document.getElementById('teacherNav').classList.remove('hidden');
+                updateTeacherPendingBadge();
+                switchTeacherTab('review');
+            }
+        }
+
+        // ================= HỒ SƠ & LÀM BÀI HỌC SINH =================
+        function getStudentRecords(stu) {
+            return getRecordsArray().filter(r =>
+                (r.studentUsername && r.studentUsername === stu.username) ||
+                (!r.studentUsername && r.name.toLowerCase() === stu.name.toLowerCase() && r.className === stu.className)
+            );
+        }
+
+        function updateStudentProfileCard() {
+            if (!sessionUser || sessionUser.role !== 'student') return;
+            const myRecords = getStudentRecords(sessionUser);
+            const titleEl = document.getElementById('stuProfileTitle');
+            const statsEl = document.getElementById('stuProfileStats');
+
+            titleEl.textContent = `${sessionUser.name} • Lớp ${sessionUser.className} (Tài khoản: @${sessionUser.username})`;
+            if (myRecords.length === 0) {
+                statsEl.innerHTML = `Em chưa nộp bài đánh giá nào. Hãy chọn chuyên đề bên dưới để bắt đầu!`;
+            } else {
+                const reviewedCount = myRecords.filter(r => !!r.teacherFeedback).length;
+                const completedUnits = [...new Set(myRecords.map(r => r.unitId.toUpperCase()))].join(", ");
+                statsEl.innerHTML = `Đã lưu <strong>${myRecords.length} lượt làm bài</strong> (${completedUnits}) • Có <strong>${reviewedCount} nhận xét</strong> từ Giáo viên.`;
+            }
+        }
+
+        function switchStudentTab(tab) {
+            document.getElementById('btnStuQuizTab').classList.toggle('active', tab === 'quiz');
+            document.getElementById('btnStuInboxTab').classList.toggle('active', tab === 'inbox');
+            document.getElementById('stuQuizSection').classList.toggle('hidden', tab !== 'quiz');
+            document.getElementById('stuInboxSection').classList.toggle('hidden', tab !== 'inbox');
+            if (tab === 'inbox') {
+                renderStudentInbox();
+            }
+        }
+
+        function updateStudentUnreadBadge() {
+            if (!sessionUser || sessionUser.role !== 'student') return;
+            const unread = getStudentRecords(sessionUser).filter(r => r.teacherFeedback && !r.studentReadFeedback);
+            const badge = document.getElementById('stuUnreadBadge');
+            if (unread.length > 0) {
+                badge.textContent = `${unread.length} mới`;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
+
+        function startAssessment() {
+            const unitId = document.getElementById('unitSelect').value;
+            activeModule = MODULES[unitId];
+            const now = Date.now();
+            currentAttempt = {
+                id: 'REC_' + now + '_' + Math.floor(Math.random() * 10000),
+                createdAtMs: now,
+                updatedAtMs: now,
+                studentUsername: sessionUser.username,
+                unitId,
+                unitName: activeModule.name,
+                name: sessionUser.name,
+                className: sessionUser.className,
+                timestamp: new Date().toLocaleString('vi-VN'),
+                primaryChoices: {},
+                primaryCorrect: {},
+                results: {},
+                diagnostics: [],
+                misconceptionCount: 0,
+                selfRating: null,
+                qualitativeNote: "",
+                teacherRating: "",
+                teacherFeedback: "",
+                teacherReviewedAt: "",
+                studentReadFeedback: false
+            };
+            qIndex = 0;
+            isRemediation = false;
+            selectedSelfScale = null;
+            document.getElementById('startScreen').classList.add('hidden');
+            document.getElementById('quizScreen').classList.remove('hidden');
+            renderQuestion();
+        }
+
+        function renderQuestion() {
+            selectedOptIdx = null;
+            selectedConf = null;
+            questionEvaluated = false;
+
+            const items = activeModule.items;
+            const item = items[qIndex];
+            const qData = isRemediation ? item.remediation : item.primary;
+
+            document.getElementById('loBadge').textContent = `${item.loId} (${qIndex + 1}/${items.length})`;
+            document.getElementById('bloomBadge').textContent = `Bậc nhận thức: ${item.bloom}`;
+            document.getElementById('loDesc').textContent = item.loTitle;
+
+            const tierBadge = document.getElementById('tierBadge');
+            const confBox = document.getElementById('confidenceBox');
+
+            if (!isRemediation) {
+                tierBadge.textContent = "Vòng 1: Chẩn đoán 2 tầng (Đáp án × Mức độ tự tin)";
+                tierBadge.className = "badge";
+                tierBadge.style.background = "#f1f5f9";
+                tierBadge.style.color = "#334155";
+                confBox.classList.remove('hidden');
+            } else {
+                tierBadge.textContent = "Vòng 2: Câu hỏi khắc phục song song";
+                tierBadge.className = "badge badge-remediation";
+                confBox.classList.add('hidden');
+            }
+
+            ['certain', 'unsure', 'guess'].forEach(c => {
+                document.getElementById(`conf-${c}`).className = 'conf-btn';
+            });
+
+            document.getElementById('progressFill').style.width = `${(qIndex / items.length) * 100}%`;
+            document.getElementById('questionText').textContent = qData.question;
+
+            const optContainer = document.getElementById('optionsContainer');
+            optContainer.innerHTML = "";
+            qData.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.textContent = `${String.fromCharCode(65 + idx)}. ${opt.text}`;
+                btn.onclick = () => chooseOption(idx);
+                optContainer.appendChild(btn);
+            });
+
+            document.getElementById('feedbackContainer').classList.add('hidden');
+            const subBtn = document.getElementById('submitAnswerBtn');
+            subBtn.classList.remove('hidden');
+            subBtn.disabled = true;
+            document.getElementById('nextBtn').classList.add('hidden');
+        }
+
+        function chooseOption(idx) {
+            if (questionEvaluated) return;
+            selectedOptIdx = idx;
+            const btns = document.querySelectorAll('.option-btn');
+            btns.forEach((b, i) => b.classList.toggle('selected-pending', i === idx));
+            updateSubmitState();
+        }
+
+        function selectConfidence(level) {
+            if (questionEvaluated) return;
+            selectedConf = level;
+            document.getElementById('conf-certain').className = level === 'certain' ? 'conf-btn active-certain' : 'conf-btn';
+            document.getElementById('conf-unsure').className = level === 'unsure' ? 'conf-btn active-unsure' : 'conf-btn';
+            document.getElementById('conf-guess').className = level === 'guess' ? 'conf-btn active-guess' : 'conf-btn';
+            updateSubmitState();
+        }
+
+        function updateSubmitState() {
+            const subBtn = document.getElementById('submitAnswerBtn');
+            subBtn.disabled = !isRemediation ? !(selectedOptIdx !== null && selectedConf !== null) : !(selectedOptIdx !== null);
+        }
+
+        function evaluateAnswer() {
+            if (questionEvaluated) return;
+            questionEvaluated = true;
+
+            const item = activeModule.items[qIndex];
+            const qData = isRemediation ? item.remediation : item.primary;
+            const opt = qData.options[selectedOptIdx];
+
+            const allBtns = document.querySelectorAll('.option-btn');
+            allBtns.forEach(b => { b.disabled = true; b.classList.remove('selected-pending'); });
+
+            const fbBox = document.getElementById('feedbackContainer');
+            const nextBtn = document.getElementById('nextBtn');
+            document.getElementById('submitAnswerBtn').classList.add('hidden');
+            fbBox.classList.remove('hidden');
+            nextBtn.classList.remove('hidden');
+
+            if (!isRemediation) {
+                currentAttempt.primaryChoices[item.loId] = selectedOptIdx;
+                currentAttempt.primaryCorrect[item.loId] = opt.isCorrect;
+
+                if (opt.isCorrect) {
+                    allBtns[selectedOptIdx].classList.add('selected-correct');
+                    if (selectedConf === 'certain') {
+                        currentAttempt.results[item.loId] = 'mastered_certain';
+                        fbBox.className = 'feedback-box fb-success';
+                        fbBox.innerHTML = `<strong>Thành thạo vững chắc!</strong> Em trả lời đúng với sự tự tin cao. (${opt.explanation})`;
+                    } else {
+                        currentAttempt.results[item.loId] = 'lucky_guess';
+                        currentAttempt.diagnostics.push("Đoán trúng / Thiếu tự tin");
+                        fbBox.className = 'feedback-box fb-lucky';
+                        fbBox.innerHTML = `
+              <strong>Đúng nhưng chưa vững (Mức độ tự tin thấp):</strong> Em chọn đúng đáp án nhưng còn phân vân/đoán mò.<br/>
+              <em>Củng cố quy tắc:</em> ${opt.explanation}
+            `;
+                    }
+                    nextBtn.textContent = qIndex < activeModule.items.length - 1 ? "Sang mục tiêu tiếp theo →" : "Sang bước Tự đánh giá →";
+                } else {
+                    allBtns[selectedOptIdx].classList.add('selected-wrong');
+                    if (selectedConf === 'certain') {
+                        currentAttempt.misconceptionCount++;
+                        currentAttempt.diagnostics.push(`Ngộ nhận cố hữu: ${opt.errorType}`);
+                        fbBox.className = 'feedback-box fb-misconception';
+                        fbBox.innerHTML = `
+              <strong>Cảnh báo Ngộ nhận cố hữu (${opt.errorType}):</strong> Em rất tự tin nhưng đang hiểu sai bản chất quy tắc!<br/>
+              ${opt.hint}<br/><br/>
+              <em>→ Hệ thống mở khóa câu hỏi song song để em điều chỉnh lại nhận thức ngay.</em>
+            `;
+                    } else {
+                        currentAttempt.diagnostics.push(opt.errorType);
+                        fbBox.className = 'feedback-box fb-scaffolding';
+                        fbBox.innerHTML = `
+              <strong>Chẩn đoán lỗ hổng (${opt.errorType}):</strong><br/>
+              ${opt.hint}<br/><br/>
+              <em>→ Hãy áp dụng gợi ý trên vào câu hỏi song song tiếp theo.</em>
+            `;
+                    }
+                    nextBtn.textContent = "Làm câu khắc phục song song →";
+                }
+            } else {
+                if (opt.isCorrect) {
+                    allBtns[selectedOptIdx].classList.add('selected-correct');
+                    currentAttempt.results[item.loId] = 'remediated';
+                    fbBox.className = 'feedback-box fb-success';
+                    fbBox.innerHTML = `<strong>Tiến bộ xuất sắc!</strong> Em đã tự điều chỉnh lỗi sai thành công. (${item.remediation.explanation})`;
+                } else {
+                    allBtns[selectedOptIdx].classList.add('selected-wrong');
+                    currentAttempt.results[item.loId] = 'need_help';
+                    fbBox.className = 'feedback-box fb-misconception';
+                    fbBox.innerHTML = `<strong>Cần hỗ trợ trực tiếp:</strong> Em vẫn gặp khó khăn ở mục tiêu này. (${item.remediation.explanation}) — Hệ thống đã ghi nhận để Giáo viên hỗ trợ riêng cho em.`;
+                }
+                nextBtn.textContent = qIndex < activeModule.items.length - 1 ? "Sang mục tiêu tiếp theo →" : "Sang bước Tự đánh giá →";
+            }
+        }
+
+        function handleNextStep() {
+            const item = activeModule.items[qIndex];
+            if (!isRemediation && !currentAttempt.results[item.loId]) {
+                isRemediation = true;
+                renderQuestion();
+            } else {
+                isRemediation = false;
+                qIndex++;
+                if (qIndex < activeModule.items.length) {
+                    renderQuestion();
+                } else {
+                    showExitTicket();
+                }
+            }
+        }
+
+        function showExitTicket() {
+            document.getElementById('quizScreen').classList.add('hidden');
+            document.getElementById('exitTicketScreen').classList.remove('hidden');
+            document.querySelectorAll('.scale-option').forEach(el => el.classList.remove('selected'));
+            document.getElementById('qualitativeNote').value = "";
+            document.getElementById('finishAllBtn').disabled = true;
+        }
+
+        function selectSelfRating(level, el) {
+            selectedSelfScale = level;
+            document.querySelectorAll('.scale-option').forEach(opt => opt.classList.remove('selected'));
+            el.classList.add('selected');
+            document.getElementById('finishAllBtn').disabled = false;
+        }
+
+        async function finalizeAndSave() {
+            currentAttempt.selfRating = selectedSelfScale;
+            currentAttempt.qualitativeNote = document.getElementById('qualitativeNote').value.trim();
+
+            document.getElementById('exitTicketScreen').classList.add('hidden');
+            document.getElementById('resultScreen').classList.remove('hidden');
+            document.getElementById('resultHeader').textContent = `Kết quả bài làm: ${currentAttempt.unitName}`;
+            document.getElementById('savedAccountSpan').textContent = `${sessionUser.name} (${sessionUser.username})`;
+
+            const total = activeModule.items.length;
+            const preCount = Object.values(currentAttempt.primaryCorrect).filter(Boolean).length;
+            const postCount = Object.values(currentAttempt.results).filter(v => v !== 'need_help').length;
+            const prePct = Math.round((preCount / total) * 100);
+            const postPct = Math.round((postCount / total) * 100);
+
+            document.getElementById('resultGrowthText').textContent =
+                `Mức đạt trước hỗ trợ: ${prePct}% → Sau hỗ trợ: ${postPct}% (+${postPct - prePct}%) • Tự đánh giá: Mức ${currentAttempt.selfRating}/4`;
+
+            const list = document.getElementById('studentSummaryList');
+            list.innerHTML = "";
+            activeModule.items.forEach(item => {
+                const st = currentAttempt.results[item.loId];
+                let label = "", color = "";
+                if (st === 'mastered_certain') { label = "Thành thạo vững chắc"; color = "var(--green)"; }
+                else if (st === 'lucky_guess') { label = "Đúng nhưng thiếu tự tin"; color = "var(--purple)"; }
+                else if (st === 'remediated') { label = "Đã tự sửa lỗi tiến bộ"; color = "var(--blue)"; }
+                else { label = "Cần giáo viên hỗ trợ"; color = "var(--red)"; }
+
+                list.innerHTML += `
+          <div style="padding:12px; border:1px solid var(--border); border-radius:8px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;">
+            <span><span class="badge badge-bloom">${item.bloom}</span> <strong>${item.loTitle}</strong></span>
+            <span style="color:${color}; font-weight:700;">● ${label}</span>
+          </div>
+        `;
+            });
+
+            await pushRecordToSupabase(currentAttempt);
+            updateStudentProfileCard();
+        }
+
+        function resetStudentQuiz() {
+            document.getElementById('quizScreen').classList.add('hidden');
+            document.getElementById('exitTicketScreen').classList.add('hidden');
+            document.getElementById('resultScreen').classList.add('hidden');
+            document.getElementById('startScreen').classList.remove('hidden');
+        }
+
+        // Hộp thư Lịch sử & Nhận xét từ Giáo viên (Phía Học sinh)
+        async function renderStudentInbox() {
+            if (isRenderingInbox) return;
+            isRenderingInbox = true;
+
+            try {
+                const container = document.getElementById('studentInboxContainer');
+                const myRecords = getStudentRecords(sessionUser);
+
+                if (myRecords.length === 0) {
+                    container.innerHTML = `
+            <div class="card" style="text-align:center; padding:32px;">
+              <p style="color:var(--muted); margin-bottom:14px;">Tài khoản <strong>${escapeHtml(sessionUser.username)}</strong> chưa có bài đánh giá nào.</p>
+              <button class="btn btn-primary" onclick="switchStudentTab('quiz')">Bắt đầu làm bài ngay &rarr;</button>
+            </div>
+          `;
+                    return;
+                }
+
+                let html = "";
+                const toMarkRead = [];
+
+                for (const rec of myRecords) {
+                    const mod = MODULES[rec.unitId];
+                    const total = mod ? mod.items.length : 1;
+                    const preCount = Object.values(rec.primaryCorrect || {}).filter(Boolean).length;
+                    const postCount = Object.values(rec.results || {}).filter(v => v !== 'need_help').length;
+                    const prePct = Math.round((preCount / total) * 100);
+                    const postPct = Math.round((postCount / total) * 100);
+
+                    if (rec.teacherFeedback && !rec.studentReadFeedback) {
+                        rec.studentReadFeedback = true;
+                        toMarkRead.push(rec);
+                    }
+
+                    let loBadges = "";
+                    if (mod) {
+                        loBadges = mod.items.map(it => {
+                            const st = rec.results[it.loId];
+                            if (st === 'mastered_certain') return `<span class="badge badge-ok">${it.loId}: Vững chắc</span>`;
+                            if (st === 'lucky_guess') return `<span class="badge badge-bloom">${it.loId}: Thiếu tự tin</span>`;
+                            if (st === 'remediated') return `<span class="badge badge-lo">${it.loId}: Đã sửa L2</span>`;
+                            return `<span class="badge badge-danger">${it.loId}: Cần hỗ trợ</span>`;
+                        }).join(" ");
+                    }
+
+                    const feedbackBlock = rec.teacherFeedback
+                        ? `
+              <div class="teacher-msg-card">
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px; margin-bottom:6px;">
+                  <strong>Nhận xét &amp; Đánh giá từ Giáo viên</strong>
+                  <span class="badge badge-ok">${escapeHtml(rec.teacherRating || 'Đã đánh giá')} • ${escapeHtml(rec.teacherReviewedAt)}</span>
+                </div>
+                <p style="margin:0; font-size:0.95rem; line-height:1.6;">${escapeHtml(rec.teacherFeedback)}</p>
+              </div>
+            `
+                        : `
+              <div class="pending-msg-card">
+                <strong>Đang chờ Giáo viên đánh giá:</strong> Bài làm của em đã được lưu trữ an toàn. Giáo viên sẽ xem xét các mục tiêu em còn vướng mắc và gửi lời nhận xét tại đây.
+              </div>
+            `;
+
+                    html += `
+            <div class="card">
+              <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:8px;">
+                <h3 style="margin:0; color:var(--primary);">${escapeHtml(rec.unitName)}</h3>
+                <span style="font-size:0.82rem; color:var(--muted);">Nộp lúc: ${escapeHtml(rec.timestamp)}</span>
+              </div>
+              <p style="margin:4px 0 10px; font-weight:600;">
+                Kết quả: Trước hỗ trợ <strong>${prePct}%</strong> &rarr; Sau hỗ trợ <strong style="color:var(--green);">${postPct}%</strong> • Tự đánh giá: <strong>Mức ${rec.selfRating || '-'}/4</strong>
+              </p>
+              <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:8px;">${loBadges}</div>
+              ${rec.qualitativeNote ? `<p style="font-size:0.86rem; color:var(--muted); margin:6px 0;"><em>Lời nhắn của em gửi GV: “${escapeHtml(rec.qualitativeNote)}”</em></p>` : ''}
+              ${feedbackBlock}
+            </div>
+          `;
+                }
+
+                container.innerHTML = html;
+                for (const r of toMarkRead) {
+                    await pushRecordToSupabase(r);
+                }
+                updateStudentUnreadBadge();
+            } finally {
+                isRenderingInbox = false;
+            }
+        }
+
+        // ================= ĐIỀU HƯỚNG & CHỨC NĂNG GIÁO VIÊN =================
+        function switchTeacherTab(tab) {
+            document.getElementById('btnTchReviewTab').classList.toggle('active', tab === 'review');
+            document.getElementById('btnTchDashTab').classList.toggle('active', tab === 'dashboard');
+            document.getElementById('btnTchAccountsTab').classList.toggle('active', tab === 'accounts');
+            document.getElementById('btnTchSpecTab').classList.toggle('active', tab === 'spec');
+
+            document.getElementById('tchReviewSection').classList.toggle('hidden', tab !== 'review');
+            document.getElementById('tchDashboardSection').classList.toggle('hidden', tab !== 'dashboard');
+            document.getElementById('tchAccountsSection').classList.toggle('hidden', tab !== 'accounts');
+            document.getElementById('tchSpecSection').classList.toggle('hidden', tab !== 'spec');
+
+            if (tab === 'review') renderTeacherReviewList();
+            if (tab === 'dashboard') renderTeacherDashboard();
+            if (tab === 'accounts') renderTeacherAccountsList();
+            if (tab === 'spec') renderSpecTable();
+        }
+
+        function updateTeacherPendingBadge() {
+            const pendingCount = getRecordsArray().filter(r => !r.teacherFeedback).length;
+            const badge = document.getElementById('tchPendingBadge');
+            if (pendingCount > 0) {
+                badge.textContent = `${pendingCount} chờ`;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
+
+        function renderTeacherReviewList() {
+            updateTeacherPendingBadge();
+            const unitFilter = document.getElementById('reviewUnitFilter').value;
+            const statusFilter = document.getElementById('reviewStatusFilter').value;
+            const container = document.getElementById('teacherReviewListContainer');
+
+            let records = getRecordsArray();
+            if (unitFilter !== 'all') records = records.filter(r => r.unitId === unitFilter);
+            if (statusFilter === 'pending') records = records.filter(r => !r.teacherFeedback);
+            if (statusFilter === 'reviewed') records = records.filter(r => !!r.teacherFeedback);
+
+            if (records.length === 0) {
+                container.innerHTML = `
+          <div class="card" style="text-align:center; padding:28px;">
+            <p style="color:var(--muted); margin-bottom:12px;">Không có bài nộp nào phù hợp với bộ lọc hiện tại.</p>
+            <button class="btn btn-outline" onclick="seedDemoData()">+ Nạp dữ liệu mẫu để trải nghiệm</button>
+          </div>
+        `;
+                return;
+            }
+
+            let html = "";
+            records.forEach(rec => {
+                const recId = rec.id;
+                const mod = MODULES[rec.unitId];
+                const isReviewed = !!rec.teacherFeedback;
+                const total = mod ? mod.items.length : 1;
+                const preCount = Object.values(rec.primaryCorrect || {}).filter(Boolean).length;
+                const postCount = Object.values(rec.results || {}).filter(v => v !== 'need_help').length;
+
+                let detailItems = "";
+                if (mod) {
+                    detailItems = mod.items.map(it => {
+                        const st = rec.results[it.loId];
+                        if (st === 'mastered_certain') return `<span class="badge badge-ok">${it.loId}: Vững</span>`;
+                        if (st === 'lucky_guess') return `<span class="badge badge-bloom">${it.loId}: Đoán/Phân vân</span>`;
+                        if (st === 'remediated') return `<span class="badge badge-lo">${it.loId}: Tự sửa L2</span>`;
+                        return `<span class="badge badge-danger">${it.loId}: Chưa đạt</span>`;
+                    }).join(" ");
+                }
+
+                const diagSummary = rec.diagnostics && rec.diagnostics.length
+                    ? rec.diagnostics.join(" | ")
+                    : "Làm đúng chắc chắn toàn bộ mục tiêu";
+
+                const defaultRating = rec.teacherRating || (postCount === total ? "Đạt chuẩn tốt" : "Cần củng cố thêm");
+
+                html += `
+          <div class="submission-card ${isReviewed ? 'reviewed-border' : 'pending-border'}">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:10px;">
+              <div>
+                <span style="font-size:1.05rem; font-weight:700; color:var(--text);">${escapeHtml(rec.name)}</span>
+                <span class="badge badge-lo" style="margin-left:6px;">Lớp ${escapeHtml(rec.className)}</span>
+                ${rec.studentUsername ? `<span style="font-size:0.8rem; color:var(--muted); margin-left:4px;">(@${escapeHtml(rec.studentUsername)})</span>` : ''}
+                <span class="badge ${isReviewed ? 'badge-ok' : 'badge-remediation'}" style="margin-left:4px;">
+                  ${isReviewed ? '✓ Đã gửi nhận xét' : '⏳ Chờ nhận xét'}
+                </span>
+                <div style="font-size:0.86rem; color:var(--primary); font-weight:600; margin-top:4px;">
+                  ${escapeHtml(rec.unitName)} • Nộp lúc: ${escapeHtml(rec.timestamp)}
+                </div>
+              </div>
+              <div style="text-align:right; font-size:0.86rem;">
+                <div>Vòng 1: <strong>${preCount}/${total}</strong> &rarr; Vòng 2: <strong style="color:var(--green);">${postCount}/${total}</strong></div>
+                <div>Học sinh tự đánh giá: <strong>Mức ${rec.selfRating || '-'}/4</strong></div>
+              </div>
+            </div>
+
+            <div style="margin:10px 0; display:flex; gap:6px; flex-wrap:wrap;">${detailItems}</div>
+            <div style="font-size:0.86rem; color:#334155;">
+              <strong>Chẩn đoán tự động:</strong> ${escapeHtml(diagSummary)}
+            </div>
+            ${rec.qualitativeNote ? `<div style="margin-top:6px; padding:8px 12px; background:#eff6ff; border-radius:8px; font-size:0.86rem; color:#1e3a8a;"><strong>Câu hỏi / Ghi chú của HS:</strong> “${escapeHtml(rec.qualitativeNote)}”</div>` : ''}
+
+            <div class="teacher-reply-box">
+              <div class="form-grid" style="margin:0 0 8px;">
+                <div>
+                  <label>Đánh giá mức độ đạt chuẩn / Định hướng hỗ trợ:</label>
+                  <select id="rating_${recId}">
+                    <option value="Đạt chuẩn vững chắc – Giao bài nâng cao" ${defaultRating.includes('vững chắc') ? 'selected' : ''}>Đạt chuẩn vững chắc – Giao bài nâng cao</option>
+                    <option value="Tiến bộ tốt sau gợi ý – Tiếp tục phát huy" ${defaultRating.includes('Tiến bộ') ? 'selected' : ''}>Tiến bộ tốt sau gợi ý – Tiếp tục phát huy</option>
+                    <option value="Đúng nhưng thiếu tự tin – Cần làm thêm bài củng cố" ${defaultRating.includes('thiếu tự tin') ? 'selected' : ''}>Đúng nhưng thiếu tự tin – Cần làm thêm bài củng cố</option>
+                    <option value="Cần hỗ trợ trực tiếp – Ôn lại kiến thức nền" ${defaultRating.includes('hỗ trợ') ? 'selected' : ''}>Cần hỗ trợ trực tiếp – Ôn lại kiến thức nền</option>
+                  </select>
+                </div>
+              </div>
+
+              <div style="font-size:0.8rem; color:var(--muted); font-weight:600;">Mẫu nhận xét sư phạm gợi ý nhanh (Bấm để chèn):</div>
+              <div class="quick-chips">
+                <button type="button" class="chip-btn" onclick="insertQuickComment('${recId}', 'Em nắm vững cấu trúc và làm bài rất tự tin. Hãy thử sức thêm các bài tập vận dụng giao tiếp nâng cao nhé!')">+ Khen ngợi vững chắc</button>
+                <button type="button" class="chip-btn" onclick="insertQuickComment('${recId}', 'Thầy/cô khen ngợi tinh thần tự điều chỉnh của em ở câu hỏi khắc phục Vòng 2. Hãy ôn lại phần lưu ý ngữ nghĩa để không nhầm lẫn nữa nhé!')">+ Khen tiến bộ Vòng 2</button>
+                <button type="button" class="chip-btn" onclick="insertQuickComment('${recId}', 'Em chọn đúng đáp án nhưng còn phân vân. Hãy xem lại bảng quy tắc trọng tâm của bài để tự tin hơn khi làm bài nhé!')">+ Củng cố sự tự tin</button>
+                <button type="button" class="chip-btn" onclick="insertQuickComment('${recId}', 'Em đang nhầm lẫn giữa cấu trúc ngữ pháp và ngữ nghĩa từ để hỏi. Tiết tới thầy/cô sẽ hướng dẫn lại trực tiếp cho em phần này.')">+ Hẹn kèm trực tiếp</button>
+              </div>
+
+              <label for="comment_${recId}">Nội dung nhận xét gửi tới học sinh:</label>
+              <textarea id="comment_${recId}" rows="2" placeholder="Nhập lời nhận xét, giải đáp thắc mắc và hướng dẫn ôn tập cho học sinh...">${escapeHtml(rec.teacherFeedback || '')}</textarea>
+
+              <div style="margin-top:10px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+                <span style="font-size:0.8rem; color:var(--muted);">
+                  ${isReviewed ? `Cập nhật lần cuối: ${escapeHtml(rec.teacherReviewedAt)}` : 'Học sinh sẽ nhận được ngay sau khi bấm gửi.'}
+                </span>
+                <button class="btn btn-primary btn-sm" onclick="submitTeacherFeedback('${recId}')">
+                  ${isReviewed ? 'Cập nhật & Gửi lại nhận xét' : 'Gửi nhận xét cho học sinh'}
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+            });
+            container.innerHTML = html;
+        }
+
+        function insertQuickComment(recId, text) {
+            const box = document.getElementById(`comment_${recId}`);
+            if (box) box.value = text;
+        }
+
+        async function submitTeacherFeedback(recId) {
+            const ratingEl = document.getElementById(`rating_${recId}`);
+            const commentEl = document.getElementById(`comment_${recId}`);
+            const commentText = commentEl.value.trim();
+
+            if (!commentText) {
+                alert("Vui lòng nhập nội dung nhận xét trước khi gửi cho học sinh.");
+                return;
+            }
+
+            const map = getRecordsMap();
+            const target = map[recId];
+            if (target) {
+                target.teacherRating = ratingEl.value;
+                target.teacherFeedback = commentText;
+                target.teacherReviewedAt = new Date().toLocaleString('vi-VN');
+                target.studentReadFeedback = false;
+                await pushRecordToSupabase(target);
+                renderTeacherReviewList();
+            }
+        }
+
+        // ================= QUẢN LÝ TÀI KHOẢN HỌC SINH (PHÍA GIÁO VIÊN) =================
+        function renderTeacherAccountsList() {
+            const users = Object.values(getUsersMap());
+            const records = getRecordsArray();
+            const tbody = document.getElementById('accountsTableBody');
+
+            if (users.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--muted);">Chưa có học sinh nào đăng ký tài khoản.</td></tr>`;
+                return;
+            }
+
+            let html = "";
+            users.forEach(u => {
+                const count = records.filter(r => r.studentUsername === u.username).length;
+                html += `
+          <tr>
+            <td><strong>${escapeHtml(u.fullName)}</strong></td>
+            <td>${escapeHtml(u.className)}</td>
+            <td><code>${escapeHtml(u.username)}</code></td>
+            <td><strong>${count} bài</strong></td>
+            <td>${escapeHtml(u.createdAt || '-')}</td>
+            <td>
+              <button class="btn btn-outline btn-sm" onclick="resetStudentPassword('${escapeHtml(u.username)}')">
+                Đặt lại MK về 123456
+              </button>
+            </td>
+          </tr>
+        `;
+            });
+            tbody.innerHTML = html;
+        }
+
+        async function resetStudentPassword(username) {
+            if (!confirm(`Đặt lại mật khẩu của tài khoản "${username}" về mặc định là 123456?`)) return;
+            const users = getUsersMap();
+            if (users[username]) {
+                users[username].password = "123456";
+                await pushUserToSupabase(users[username]);
+                alert(`Đã đặt lại mật khẩu cho "${username}" thành: 123456`);
+                renderTeacherAccountsList();
+            }
+        }
+
+        // ================= DASHBOARD CTT GIÁO VIÊN =================
+        function renderTeacherDashboard() {
+            const unitId = document.getElementById('teacherUnitFilter').value;
+            const mod = MODULES[unitId];
+            const records = getRecordsArray().filter(r => r.unitId === unitId);
+
+            const loChart = document.getElementById('loChartContainer');
+            const errChart = document.getElementById('errorChartContainer');
+            const cttBody = document.getElementById('cttTableBody');
+            const thead = document.getElementById('studentTableHead');
+            const tbody = document.getElementById('studentTableBody');
+
+            if (records.length === 0) {
+                document.getElementById('kpiTotal').textContent = "0 HS";
+                document.getElementById('kpiPreRate').textContent = "0%";
+                document.getElementById('kpiPostRate').textContent = "0%";
+                document.getElementById('kpiGainSub').textContent = "Mức tăng trưởng (Learning Gain): +0%";
+                document.getElementById('kpiMisconception').textContent = "0%";
+
+                loChart.innerHTML = `<p style="color:var(--muted);">Chưa có dữ liệu. Hãy bấm <strong>"+ Nạp mẫu thực nghiệm"</strong> hoặc chờ học sinh nộp bài.</p>`;
+                errChart.innerHTML = `<p style="color:var(--muted);">Chưa có dữ liệu thống kê lỗi sai.</p>`;
+                cttBody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--muted);">Chưa có dữ liệu để tính tham số CTT.</td></tr>`;
+                thead.innerHTML = "";
+                tbody.innerHTML = "";
+                ['groupRed', 'groupBlue', 'groupPurple', 'groupGreen'].forEach(id => {
+                    document.getElementById(id).textContent = "Chưa có dữ liệu";
+                });
+                return;
+            }
+
+            const nStudents = records.length;
+            const nItems = mod.items.length;
+            const totalSlots = nStudents * nItems;
+            let preCorrectTotal = 0;
+            let postMasteredTotal = 0;
+            let miscStudents = 0;
+
+            records.forEach(r => {
+                mod.items.forEach(it => {
+                    if (r.primaryCorrect && r.primaryCorrect[it.loId]) preCorrectTotal++;
+                    if (r.results[it.loId] !== 'need_help') postMasteredTotal++;
+                });
+                if ((r.misconceptionCount || 0) > 0) miscStudents++;
+            });
+
+            const prePct = Math.round((preCorrectTotal / totalSlots) * 100);
+            const postPct = Math.round((postMasteredTotal / totalSlots) * 100);
+            const miscPct = Math.round((miscStudents / nStudents) * 100);
+
+            document.getElementById('kpiTotal').textContent = `${nStudents} HS`;
+            document.getElementById('kpiPreRate').textContent = `${prePct}%`;
+            document.getElementById('kpiPostRate').textContent = `${postPct}%`;
+            document.getElementById('kpiGainSub').textContent = `Mức tăng trưởng (Learning Gain): +${postPct - prePct}%`;
+            document.getElementById('kpiMisconception').textContent = `${miscPct}% (${miscStudents}/${nStudents})`;
+
+            let loHtml = "";
+            mod.items.forEach(item => {
+                let m = 0, l = 0, r = 0, n = 0;
+                records.forEach(rec => {
+                    const st = rec.results[item.loId];
+                    if (st === 'mastered_certain') m++;
+                    else if (st === 'lucky_guess') l++;
+                    else if (st === 'remediated') r++;
+                    else n++;
+                });
+                const pM = Math.round((m / nStudents) * 100);
+                const pL = Math.round((l / nStudents) * 100);
+                const pR = Math.round((r / nStudents) * 100);
+                const pN = Math.max(0, 100 - pM - pL - pR);
+
+                loHtml += `
+          <div class="bar-row">
+            <div class="bar-label">
+              <span>${item.shortLabel} [${item.bloom}]</span>
+              <span>Sau hỗ trợ: ${pM + pL + pR}%</span>
+            </div>
+            <div class="bar-track">
+              <div class="seg-mastered" style="width:${pM}%"></div>
+              <div class="seg-lucky" style="width:${pL}%"></div>
+              <div class="seg-remediated" style="width:${pR}%"></div>
+              <div class="seg-needhelp" style="width:${pN}%"></div>
+            </div>
+          </div>
+        `;
+            });
+            loChart.innerHTML = loHtml;
+
+            const errCounts = {};
+            let totalErrors = 0;
+            records.forEach(rec => {
+                (rec.diagnostics || []).forEach(d => {
+                    errCounts[d] = (errCounts[d] || 0) + 1;
+                    totalErrors++;
+                });
+            });
+
+            const sortedErrors = Object.entries(errCounts).sort((a, b) => b[1] - a[1]);
+            if (sortedErrors.length === 0) {
+                errChart.innerHTML = `<p style="color:var(--green); font-weight:600;">100% học sinh làm đúng chắc chắn!</p>`;
+            } else {
+                let errHtml = "";
+                sortedErrors.slice(0, 5).forEach(([errName, count]) => {
+                    const pct = Math.round((count / totalErrors) * 100);
+                    const isMisc = errName.startsWith("Ngộ nhận");
+                    const barColor = isMisc ? "var(--red)" : (errName.startsWith("Đoán") ? "var(--purple)" : "var(--amber)");
+                    errHtml += `
+            <div class="bar-row">
+              <div class="bar-label">
+                <span>${escapeHtml(errName)}</span>
+                <span>${count} lượt (${pct}%)</span>
+              </div>
+              <div class="bar-track">
+                <div style="width:${pct}%; background:${barColor};"></div>
+              </div>
+            </div>
+          `;
+                });
+                errChart.innerHTML = errHtml;
+            }
+
+            const scoredStudents = records.map(r => {
+                const score = mod.items.reduce((acc, it) => acc + (r.primaryCorrect && r.primaryCorrect[it.loId] ? 1 : 0), 0);
+                return { ...r, v1Score: score };
+            }).sort((a, b) => b.v1Score - a.v1Score);
+
+            const kGroup = Math.max(1, Math.round(nStudents * 0.27));
+            const upperGroup = scoredStudents.slice(0, kGroup);
+            const lowerGroup = scoredStudents.slice(-kGroup);
+
+            let cttHtml = "";
+            mod.items.forEach(item => {
+                const correctCount = records.filter(r => r.primaryCorrect && r.primaryCorrect[item.loId]).length;
+                const pVal = (correctCount / nStudents).toFixed(2);
+
+                const pUpper = upperGroup.filter(r => r.primaryCorrect && r.primaryCorrect[item.loId]).length / kGroup;
+                const pLower = lowerGroup.filter(r => r.primaryCorrect && r.primaryCorrect[item.loId]).length / kGroup;
+                const dVal = (pUpper - pLower).toFixed(2);
+
+                const choiceDist = [0, 0, 0, 0];
+                records.forEach(r => {
+                    if (r.primaryChoices && r.primaryChoices[item.loId] !== undefined) {
+                        choiceDist[r.primaryChoices[item.loId]]++;
+                    }
+                });
+                const distText = choiceDist.map((c, idx) => {
+                    const isKey = item.primary.options[idx].isCorrect;
+                    const pct = Math.round((c / nStudents) * 100);
+                    const label = `${String.fromCharCode(65 + idx)}: ${pct}%`;
+                    return isKey ? `<strong style="color:var(--green);">[${label}*]</strong>` : label;
+                }).join(" | ");
+
+                let statusHtml = "";
+                if (parseFloat(pVal) < 0.30) {
+                    statusHtml = `<span class="badge badge-danger">Độ khó cao (p &lt; 0.30): Cần giảng lại</span>`;
+                } else if (parseFloat(dVal) < 0.20 && nStudents >= 4) {
+                    statusHtml = `<span class="badge badge-remediation">Độ phân biệt thấp (D &lt; 0.20): Rà soát nhiễu</span>`;
+                } else {
+                    statusHtml = `<span class="badge badge-ok">Đạt chuẩn đo lường</span>`;
+                }
+
+                cttHtml += `
+          <tr>
+            <td><strong>${item.loId}</strong></td>
+            <td><span class="badge badge-bloom">${item.bloom}</span></td>
+            <td><strong>${pVal}</strong> (${Math.round(pVal * 100)}%)</td>
+            <td><strong>${dVal}</strong></td>
+            <td>${distText}</td>
+            <td>${statusHtml}</td>
+          </tr>
+        `;
+            });
+            cttBody.innerHTML = cttHtml;
+
+            const gRed = [], gBlue = [], gPurple = [], gGreen = [];
+            thead.innerHTML = `<tr><th>Học sinh</th><th>Lớp</th>` +
+                mod.items.map(it => `<th>${it.loId}</th>`).join("") +
+                `<th>Tự ĐG</th><th>Trạng thái nhận xét của GV</th></tr>`;
+
+            const badgeHtml = (st) => {
+                if (st === 'mastered_certain') return `<span style="color:var(--green); font-weight:600;">✓ Vững</span>`;
+                if (st === 'lucky_guess') return `<span style="color:var(--purple); font-weight:600;">? Đoán</span>`;
+                if (st === 'remediated') return `<span style="color:var(--blue); font-weight:600;">↻ Sửa L2</span>`;
+                return `<span style="color:var(--red); font-weight:700;">✕ Hỗ trợ</span>`;
+            };
+
+            let tbHtml = "";
+            records.forEach(rec => {
+                const vals = Object.values(rec.results);
+                if (vals.includes('need_help')) gRed.push(`${rec.name} (${rec.className})`);
+                else if (vals.includes('remediated')) gBlue.push(`${rec.name} (${rec.className})`);
+                else if (vals.includes('lucky_guess')) gPurple.push(`${rec.name} (${rec.className})`);
+                else gGreen.push(`${rec.name} (${rec.className})`);
+
+                const fbStatus = rec.teacherFeedback
+                    ? `<span class="badge badge-ok">Đã gửi</span> ${escapeHtml(rec.teacherFeedback)}`
+                    : `<span class="badge badge-remediation">Chờ GV nhận xét</span>`;
+
+                tbHtml += `
+          <tr>
+            <td><strong>${escapeHtml(rec.name)}</strong></td>
+            <td>${escapeHtml(rec.className)}</td>
+            ${mod.items.map(it => `<td>${badgeHtml(rec.results[it.loId])}</td>`).join("")}
+            <td><strong>${rec.selfRating || "-"}/4</strong></td>
+            <td>${fbStatus}</td>
+          </tr>
+        `;
+            });
+            tbody.innerHTML = tbHtml;
+
+            document.getElementById('groupRed').textContent = gRed.length ? gRed.join(", ") : "Không có";
+            document.getElementById('groupBlue').textContent = gBlue.length ? gBlue.join(", ") : "Không có";
+            document.getElementById('groupPurple').textContent = gPurple.length ? gPurple.join(", ") : "Không có";
+            document.getElementById('groupGreen').textContent = gGreen.length ? gGreen.join(", ") : "Không có";
+        }
+
+        // ================= BẢNG ĐẶC TẢ 2 CHIỀU =================
+        function renderSpecTable() {
+            const unitId = document.getElementById('specUnitSelect').value;
+            const mod = MODULES[unitId];
+            const tbody = document.getElementById('specTableBody');
+            let html = "";
+
+            mod.items.forEach(item => {
+                const cNho = item.bloom === "Nhớ" ? `<span class="badge badge-ok">1 câu chính + 1 câu song song (${item.weight})</span>` : "—";
+                const cHieu = item.bloom === "Hiểu" ? `<span class="badge badge-ok">1 câu chính + 1 câu song song (${item.weight})</span>` : "—";
+                const cVanDung = item.bloom === "Vận dụng" ? `<span class="badge badge-ok">1 câu chính + 1 câu song song (${item.weight})</span>` : "—";
+
+                html += `
+          <tr>
+            <td><strong>${item.loTitle}</strong></td>
+            <td class="${item.bloom === 'Nhớ' ? 'tos-cell-active' : 'tos-cell-empty'}">${cNho}</td>
+            <td class="${item.bloom === 'Hiểu' ? 'tos-cell-active' : 'tos-cell-empty'}">${cHieu}</td>
+            <td class="${item.bloom === 'Vận dụng' ? 'tos-cell-active' : 'tos-cell-empty'}">${cVanDung}</td>
+            <td>TNKQ 4 lựa chọn + Thang CBA 3 bậc + Giàn giáo L2</td>
+          </tr>
+        `;
+            });
+            tbody.innerHTML = html;
+        }
+
+        // Nạp dữ liệu mẫu thực nghiệm (đồng bộ lên Supabase nếu đang kết nối)
+        async function seedDemoData() {
+            await syncFromSupabase();
+
+            const demoStudents = [
+                { username: "minhanh9a1", fullName: "Nguyễn Minh Anh", className: "9A1" },
+                { username: "baongoc9a2", fullName: "Trần Bảo Ngọc", className: "9A2" },
+                { username: "hoangnam9a1", fullName: "Lê Hoàng Nam", className: "9A1" },
+                { username: "khanhlinh9a2", fullName: "Phạm Khánh Linh", className: "9A2" },
+                { username: "ducminh9a1", fullName: "Vũ Đức Minh", className: "9A1" },
+                { username: "thuha9a2", fullName: "Đỗ Thu Hà", className: "9A2" }
+            ];
+            const sampleNotes = [
+                "Em hay nhầm 'what' và 'how' khi dịch sang tiếng Việt, nhờ thầy/cô giải thích thêm giúp em.",
+                "",
+                "Phần câu gián tiếp có tân ngữ rất dễ hiểu nhờ gợi ý của hệ thống.",
+                "",
+                "Em muốn làm thêm bài tập về so sánh kép với danh từ đếm được.",
+                ""
+            ];
+
+            const usersMap = getUsersMap();
+            const newUserRows = [];
+            demoStudents.forEach(s => {
+                if (!usersMap[s.username]) {
+                    const uObj = {
+                        username: s.username,
+                        password: "123456",
+                        fullName: s.fullName,
+                        className: s.className,
+                        createdAt: new Date().toLocaleString('vi-VN'),
+                        updatedAtMs: Date.now()
+                    };
+                    usersMap[s.username] = uObj;
+                    newUserRows.push(userToRow(uObj));
+                }
+            });
+            saveUsersMap(usersMap);
+
+            const recordsMap = getRecordsMap();
+            const newRecordRows = [];
+            const baseNow = Date.now();
+
+            Object.values(MODULES).forEach((mod, mIdx) => {
+                demoStudents.forEach((stu, idx) => {
+                    const res = {};
+                    const pChoices = {};
+                    const pCorrect = {};
+                    const diags = [];
+                    let miscCount = 0;
+
+                    mod.items.forEach((it, j) => {
+                        const correctIdx = it.primary.options.findIndex(o => o.isCorrect);
+                        const wrongIndices = it.primary.options.map((o, i) => !o.isCorrect ? i : -1).filter(i => i !== -1);
+                        const mode = (idx + j) % 5;
+
+                        if (mode === 0 || mode === 1) {
+                            res[it.loId] = 'mastered_certain';
+                            pChoices[it.loId] = correctIdx;
+                            pCorrect[it.loId] = true;
+                        } else if (mode === 2) {
+                            res[it.loId] = 'lucky_guess';
+                            pChoices[it.loId] = correctIdx;
+                            pCorrect[it.loId] = true;
+                            if (!diags.includes("Đoán trúng / Thiếu tự tin")) diags.push("Đoán trúng / Thiếu tự tin");
+                        } else if (mode === 3) {
+                            res[it.loId] = 'remediated';
+                            const chosenWrong = wrongIndices[idx % wrongIndices.length];
+                            pChoices[it.loId] = chosenWrong;
+                            pCorrect[it.loId] = false;
+                            miscCount++;
+                            diags.push(`Ngộ nhận cố hữu: ${it.primary.options[chosenWrong].errorType}`);
+                        } else {
+                            res[it.loId] = 'need_help';
+                            const chosenWrong = wrongIndices[(idx + 1) % wrongIndices.length];
+                            pChoices[it.loId] = chosenWrong;
+                            pCorrect[it.loId] = false;
+                            diags.push(it.primary.options[chosenWrong].errorType);
+                        }
+                    });
+
+                    const hasSampleFeedback = idx % 3 === 1;
+                    const recId = `DEMO_${mod.id}_${stu.username}_${baseNow + mIdx * 100 + idx}`;
+                    const recObj = {
+                        id: recId,
+                        createdAtMs: baseNow + mIdx * 100 + idx,
+                        updatedAtMs: baseNow + mIdx * 100 + idx,
+                        studentUsername: stu.username,
+                        unitId: mod.id,
+                        unitName: mod.name,
+                        name: stu.fullName,
+                        className: stu.className,
+                        timestamp: new Date().toLocaleString('vi-VN'),
+                        primaryChoices: pChoices,
+                        primaryCorrect: pCorrect,
+                        results: res,
+                        diagnostics: diags,
+                        misconceptionCount: miscCount,
+                        selfRating: (idx % 4) + 1,
+                        qualitativeNote: sampleNotes[idx % sampleNotes.length],
+                        teacherRating: hasSampleFeedback ? "Tiến bộ tốt sau gợi ý – Tiếp tục phát huy" : "",
+                        teacherFeedback: hasSampleFeedback ? "Em nắm ý rất nhanh sau gợi ý ở Vòng 2. Chú ý phân biệt kỹ từ để hỏi theo ngữ cảnh câu nhé!" : "",
+                        teacherReviewedAt: hasSampleFeedback ? new Date().toLocaleString('vi-VN') : "",
+                        studentReadFeedback: false
+                    };
+                    recordsMap[recId] = recObj;
+                    newRecordRows.push(recordToRow(recObj));
+                });
+            });
+
+            saveRecordsMap(recordsMap);
+            if (sbClient) {
+                if (newUserRows.length) await sbClient.from('afl_users').upsert(newUserRows, { onConflict: 'username' });
+                if (newRecordRows.length) await sbClient.from('afl_records').upsert(newRecordRows, { onConflict: 'id' });
+            }
+            refreshCurrentScreen();
+        }
+
+        async function clearAllData() {
+            if (confirm("Xóa toàn bộ dữ liệu bài làm và nhận xét hiện tại?")) {
+                localStorage.removeItem(STORAGE_RECORDS_KEY);
+                if (sbClient) {
+                    await sbClient.from('afl_records').delete().neq('id', '');
+                }
+                refreshCurrentScreen();
+            }
+        }
+
+        function exportCSV() {
+            const unitId = document.getElementById('teacherUnitFilter').value;
+            const mod = MODULES[unitId];
+            const records = getRecordsArray().filter(r => r.unitId === unitId);
+            if (!records.length) { alert("Chưa có dữ liệu ở chuyên đề này để xuất file."); return; }
+
+            const headers = [
+                "Chuyên đề", "Tài khoản HS", "Họ tên", "Lớp", "Thời gian nộp",
+                ...mod.items.map(i => `${i.loId} (${i.bloom})`),
+                "Tự đánh giá (1-4)", "Ghi chú của HS", "Đánh giá của GV", "Nhận xét GV gửi HS"
+            ];
+            let csv = "\uFEFF" + headers.join(",") + "\n";
+            records.forEach(r => {
+                const row = [
+                    `"${r.unitName}"`, `"${r.studentUsername || ''}"`, `"${r.name}"`, `"${r.className}"`, `"${r.timestamp}"`,
+                    ...mod.items.map(i => `"${r.results[i.loId]}"`),
+                    `"${r.selfRating || ''}"`,
+                    `"${(r.qualitativeNote || '').replace(/"/g, '""')}"`,
+                    `"${(r.teacherRating || 'Chờ nhận xét').replace(/"/g, '""')}"`,
+                    `"${(r.teacherFeedback || '').replace(/"/g, '""')}"`
+                ];
+                csv += row.join(",") + "\n";
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = `Bao_Cao_AfL_Supabase_${unitId.toUpperCase()}.csv`;
+            link.click();
+        }
+    </script>
+</body>
+</html>
